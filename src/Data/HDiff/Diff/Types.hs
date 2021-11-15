@@ -1,4 +1,5 @@
-module Data.HDiff.Diff.Types where
+module Data.HDiff.Diff.Types
+  where
 
 import qualified Data.WordTrie as T
 
@@ -34,11 +35,11 @@ data DiffMode
 -- |Specifies the options for the diffing algorithm
 data DiffOptions = DiffOptions
   -- ^ Minimum height of trees considered for sharing
-  { doMinHeight      :: Int
+  { doMinHeight  :: Int
   -- ^ Context extraction mode
-  , doMode           :: DiffMode
+  , doMode       :: DiffMode
   -- ^ Should we skip change minimization and closures?
-  , doGlobalChgs     :: Bool
+  , doGlobalChgs :: Bool
   } deriving (Eq , Show)
 
 diffOptionsDefault :: DiffOptions

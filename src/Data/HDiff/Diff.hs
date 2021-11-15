@@ -1,34 +1,34 @@
-{-# LANGUAGE FlexibleInstances     #-}
-{-# LANGUAGE ScopedTypeVariables   #-}
-{-# LANGUAGE TypeOperators         #-}
-{-# LANGUAGE PatternSynonyms       #-}
-{-# LANGUAGE RankNTypes            #-}
-{-# LANGUAGE DataKinds             #-}
-{-# LANGUAGE PolyKinds             #-}
-{-# LANGUAGE GADTs                 #-}
+{-# LANGUAGE DataKinds           #-}
+{-# LANGUAGE FlexibleInstances   #-}
+{-# LANGUAGE GADTs               #-}
+{-# LANGUAGE PatternSynonyms     #-}
+{-# LANGUAGE PolyKinds           #-}
+{-# LANGUAGE RankNTypes          #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeOperators       #-}
 module Data.HDiff.Diff
-  ( diffOpts'
-  , diffOpts
+  ( module Data.HDiff.Diff.Types
+  , DiffMode (..)
   , diff
-  , DiffMode(..)
-  , module Data.HDiff.Diff.Types
+  , diffOpts
+  , diffOpts'
   ) where
 
-import           Data.Functor.Const
 import           Control.Monad.State
+import           Data.Functor.Const
 -----------------------------------------
 import           Generics.Simplistic
 import           Generics.Simplistic.Deep
-import           Generics.Simplistic.Util
 import           Generics.Simplistic.Digest
+import           Generics.Simplistic.Util
 -----------------------------------------
-import qualified Data.WordTrie as T
-import           Data.HDiff.Diff.Types
+import           Data.HDiff.Base
+import           Data.HDiff.Diff.Closure
 import           Data.HDiff.Diff.Modes
 import           Data.HDiff.Diff.Preprocess
-import           Data.HDiff.Diff.Closure
-import           Data.HDiff.Base
+import           Data.HDiff.Diff.Types
 import           Data.HDiff.MetaVar
+import qualified Data.WordTrie              as T
 
 -- * Diffing
 --
@@ -52,13 +52,13 @@ buildArityTrie opts df = go df T.empty
       | otherwise                    = ins (treeDigest prep) (goR p t)
 
     goR :: SRep (PrepFix a kappa fam) ix -> T.Trie Int -> T.Trie Int
-    goR S_U1 t = t
-    goR (S_L1 x) t = goR x t
-    goR (S_R1 x) t = goR x t
-    goR (S_ST x) t = goR x t
+    goR S_U1 t       = t
+    goR (S_L1 x) t   = goR x t
+    goR (S_R1 x) t   = goR x t
+    goR (S_ST x) t   = goR x t
     goR (S_M1 _ x) t = goR x t
     goR (x :**: y) t = goR y (goR x t)
-    goR (S_K1 x) t = go x t
+    goR (S_K1 x) t   = go x t
 
 -- |Given two merkelized trees, returns the trie that indexes
 --  the subtrees that belong in both, ie,

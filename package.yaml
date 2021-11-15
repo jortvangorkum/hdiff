@@ -5,7 +5,8 @@ description: This package provides an executable and a library to compute
              and manipulate pattern-expression based differences between
              values of arbitrary datatypes. For more detailed information
              check the README at our GitHub page.
-maintainer:  Jort van Gorkum <jortvangorkum@gmail.com> & Victor Miraldo <v.cacciarimiraldo@gmail.com>
+author:      Jort van Gorkum <jortvangorkum@gmail.com> & Victor Miraldo <v.cacciarimiraldo@gmail.com>
+maintainer:  Jort van Gorkum <jortvangorkum@gmail.com>
 github:      jortvangorkum/hdiff
 category:    Other
 

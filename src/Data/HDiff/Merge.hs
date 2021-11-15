@@ -1,48 +1,49 @@
-{-# LANGUAGE UndecidableInstances #-}
-{-# LANGUAGE KindSignatures        #-}
-{-# LANGUAGE StandaloneDeriving    #-}
-{-# LANGUAGE RankNTypes            #-}
-{-# LANGUAGE FlexibleContexts      #-}
-{-# LANGUAGE ConstraintKinds       #-}
-{-# LANGUAGE TypeOperators         #-}
-{-# LANGUAGE FlexibleInstances     #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE ScopedTypeVariables   #-}
-{-# LANGUAGE DataKinds             #-}
-{-# LANGUAGE GADTs                 #-}
 {-# LANGUAGE CPP                   #-}
+{-# LANGUAGE ConstraintKinds       #-}
+{-# LANGUAGE DataKinds             #-}
+{-# LANGUAGE FlexibleContexts      #-}
+{-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE GADTs                 #-}
+{-# LANGUAGE KindSignatures        #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE RankNTypes            #-}
+{-# LANGUAGE ScopedTypeVariables   #-}
+{-# LANGUAGE StandaloneDeriving    #-}
+{-# LANGUAGE TypeOperators         #-}
+{-# LANGUAGE UndecidableInstances  #-}
 {-# OPTIONS_GHC -Wno-orphans       #-}
-module Data.HDiff.Merge where
+module Data.HDiff.Merge
+  where
 
 import           Control.Monad.Cont
-import           Control.Monad.State
 import           Control.Monad.Except
-import qualified Data.Map as M
+import           Control.Monad.State
+import           Data.List                                 (partition)
+import qualified Data.Map                                  as M
 import           Data.Type.Equality
-import           Data.List (partition)
 ----------------------------------------
 import           GHC.Generics
 import           Generics.Simplistic
 import           Generics.Simplistic.Deep
-import           Generics.Simplistic.Util
 import           Generics.Simplistic.Unify
+import           Generics.Simplistic.Util
 import           Generics.Simplistic.Zipper
 ----------------------------------------
-import           Data.HDiff.MetaVar
 import           Data.HDiff.Base
 import           Data.HDiff.Diff.Align
+import           Data.HDiff.MetaVar
 
 
-import           Generics.Simplistic.Pretty
 import           Data.HDiff.Show
-import           Data.Text.Prettyprint.Doc hiding (align)
+import           Data.Text.Prettyprint.Doc                 hiding (align)
 import           Data.Text.Prettyprint.Doc.Render.Terminal
+import           Generics.Simplistic.Pretty
 
-import Unsafe.Coerce
+import           Unsafe.Coerce
 
 -- #define DEBUG_MERGE
 #ifdef DEBUG_MERGE
-import Debug.Trace
+import           Debug.Trace
 #else
 trace :: x -> a -> a
 trace _ = id
@@ -311,7 +312,7 @@ mergePhase1 p q =
 
    isDup :: Chg kappa fam x -> Bool
    isDup (Chg (Hole _) (Hole _)) = True
-   isDup _ = False
+   isDup _                       = False
 
    mrgChgChg :: Chg kappa fam x -> Chg kappa fam x
              -> MergeM kappa fam (Phase2 kappa fam x)

@@ -1,12 +1,13 @@
 {-# LANGUAGE TupleSections #-}
-module Data.WordTrie where
+module Data.WordTrie
+  where
 
-import Prelude hiding (lookup,zipWith)
-import Control.Arrow ((***), first, second)
+import           Control.Arrow (first, second, (***))
+import           Prelude       hiding (lookup, zipWith)
 
-import qualified Data.Map  as M
-import qualified Data.List as L
-import           Data.Word (Word64)
+import qualified Data.List     as L
+import qualified Data.Map      as M
+import           Data.Word     (Word64)
 
 -- |A Trie indexed by 'Word64's.
 data Trie a = Fork
