@@ -1,16 +1,18 @@
 {-# LANGUAGE TypeApplications #-}
-module Data.HDiff.DiffSpec (spec) where
+module Data.HDiff.DiffSpec
+  ( spec
+  ) where
 
-import Data.HDiff.Base
-import Data.HDiff.Diff
-import Languages.RTree
-import Languages.RTree.Diff
-import qualified Data.Set as S
+import           Data.HDiff.Base
+import           Data.HDiff.Diff
+import qualified Data.Set                 as S
+import           Languages.RTree
+import           Languages.RTree.Diff
 
-import Generics.Simplistic.Deep
+import           Generics.Simplistic.Deep
 
-import Test.QuickCheck
-import Test.Hspec
+import           Test.Hspec
+import           Test.QuickCheck
 
 
 diff_wellscoped_changes :: DiffMode -> Property

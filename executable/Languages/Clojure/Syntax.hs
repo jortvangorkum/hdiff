@@ -4,7 +4,8 @@
 {-# LANGUAGE KindSignatures #-}
 -- | Taken from
 -- https://github.com/nazrhom/vcs-clojure/blob/master/src/Language/Clojure/Syntax.hs
-module Languages.Clojure.Syntax where
+module Languages.Clojure.Syntax
+  where
 
 import Data.Text
 

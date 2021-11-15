@@ -1,23 +1,23 @@
-{-# LANGUAGE StandaloneDeriving    #-}
-{-# LANGUAGE TupleSections         #-}
-{-# LANGUAGE RankNTypes            #-}
-{-# LANGUAGE FlexibleInstances     #-}
-{-# LANGUAGE TypeSynonymInstances  #-}
-{-# LANGUAGE PatternSynonyms       #-}
-{-# LANGUAGE DeriveDataTypeable    #-}
-{-# LANGUAGE TemplateHaskell       #-}
 {-# LANGUAGE DataKinds             #-}
-{-# LANGUAGE PolyKinds             #-}
+{-# LANGUAGE DeriveDataTypeable    #-}
+{-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE GADTs                 #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE TypeApplications      #-}
+{-# LANGUAGE PatternSynonyms       #-}
+{-# LANGUAGE PolyKinds             #-}
+{-# LANGUAGE RankNTypes            #-}
 {-# LANGUAGE ScopedTypeVariables   #-}
+{-# LANGUAGE StandaloneDeriving    #-}
+{-# LANGUAGE TemplateHaskell       #-}
+{-# LANGUAGE TupleSections         #-}
+{-# LANGUAGE TypeApplications      #-}
+{-# LANGUAGE TypeSynonymInstances  #-}
 module Languages.RTree.Diff where
 
-import Languages.RTree
-import Data.HDiff.Base
 import Data.HDiff.Apply
+import Data.HDiff.Base
 import Data.HDiff.Diff
+import Languages.RTree
 
 import Generics.Simplistic.Deep
 

@@ -8,7 +8,8 @@
 {-# LANGUAGE QuantifiedConstraints  #-}
 {-# LANGUAGE RankNTypes             #-}
 {-# LANGUAGE TypeApplications       #-}
-module Languages.Interface where
+module Languages.Interface
+  where
 
 import           Data.List                   (elemIndex, splitAt)
 

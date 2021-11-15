@@ -12,7 +12,8 @@
 {-# OPTIONS_GHC -Wno-orphans                            #-}
 {-# OPTIONS_GHC -Wno-missing-signatures                 #-}
 {-# OPTIONS_GHC -Wno-missing-pattern-synonym-signatures #-}
-module Languages.Java where
+module Languages.Java
+  where
 
 #ifdef REAL_LANGUAGES
 

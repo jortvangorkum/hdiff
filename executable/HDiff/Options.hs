@@ -1,5 +1,6 @@
 {-# LANGUAGE TemplateHaskell #-}
-module HDiff.Options where
+module HDiff.Options
+  where
 
 
 import           Data.Foldable       (asum)

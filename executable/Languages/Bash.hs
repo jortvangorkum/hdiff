@@ -12,7 +12,8 @@
 {-# OPTIONS_GHC -Wno-orphans                            #-}
 {-# OPTIONS_GHC -Wno-missing-signatures                 #-}
 {-# OPTIONS_GHC -Wno-missing-pattern-synonym-signatures #-}
-module Languages.Bash where
+module Languages.Bash
+  where
 
 #ifdef REAL_LANGUAGES
 

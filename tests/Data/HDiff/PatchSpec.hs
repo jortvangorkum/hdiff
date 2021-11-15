@@ -1,20 +1,22 @@
-{-# LANGUAGE PolyKinds        #-}
-{-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE DataKinds        #-}
 {-# LANGUAGE GADTs            #-}
-module Data.HDiff.PatchSpec (spec) where
+{-# LANGUAGE PolyKinds        #-}
+{-# LANGUAGE TypeApplications #-}
+module Data.HDiff.PatchSpec
+  ( spec
+  ) where
 
-import Data.HDiff.Diff
 import Data.HDiff.Base
-import Data.HDiff.MetaVar
 import Data.HDiff.Compose
+import Data.HDiff.Diff
+import Data.HDiff.MetaVar
 import Languages.RTree
 import Languages.RTree.Diff
 
 import Generics.Simplistic.Deep
 
+import Test.Hspec               hiding (after)
 import Test.QuickCheck
-import Test.Hspec hiding (after)
 
 ----------------------------------------------
 

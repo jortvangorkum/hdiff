@@ -12,7 +12,8 @@
 {-# OPTIONS_GHC -Wno-orphans                            #-}
 {-# OPTIONS_GHC -Wno-missing-signatures                 #-}
 {-# OPTIONS_GHC -Wno-missing-pattern-synonym-signatures #-}
-module Languages.Lua where
+module Languages.Lua
+  where
 
 #ifdef REAL_LANGUAGES
 

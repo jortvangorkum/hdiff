@@ -13,7 +13,8 @@
 {-# LANGUAGE TypeSynonymInstances  #-}
 {-# OPTIONS_GHC -Wno-missing-signatures                 #-}
 {-# OPTIONS_GHC -Wno-missing-pattern-synonym-signatures #-}
-module Languages.While where
+module Languages.While
+  where
 
 import           Text.ParserCombinators.Parsec
 import           Text.ParserCombinators.Parsec.Expr
