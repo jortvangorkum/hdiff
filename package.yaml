@@ -1,14 +1,14 @@
-name:        hdiff
-version:     0.0.5
-synopsis:    Pattern-Expression-based differencing of arbitrary types.
+name: hdiff
+version: 0.0.5
+synopsis: Pattern-Expression-based differencing of arbitrary types.
 description: This package provides an executable and a library to compute
-             and manipulate pattern-expression based differences between
-             values of arbitrary datatypes. For more detailed information
-             check the README at our GitHub page.
-author:      Jort van Gorkum <jortvangorkum@gmail.com> & Victor Miraldo <v.cacciarimiraldo@gmail.com>
-maintainer:  Jort van Gorkum <jortvangorkum@gmail.com>
-github:      jortvangorkum/hdiff
-category:    Other
+  and manipulate pattern-expression based differences between
+  values of arbitrary datatypes. For more detailed information
+  check the README at our GitHub page.
+author: Jort van Gorkum <jortvangorkum@gmail.com> & Victor Miraldo <v.cacciarimiraldo@gmail.com>
+maintainer: Jort van Gorkum <jortvangorkum@gmail.com>
+github: jortvangorkum/hdiff
+category: Other
 
 dependencies:
   - base >= 4.9 && < 5
@@ -19,16 +19,20 @@ dependencies:
   - prettyprinter
   - prettyprinter-ansi-terminal
   - text
-  - QuickCheck
-  - hspec
   - memory
   - template-haskell
   - deepseq
   - simplistic-generics
 
+internal-libraries:
+  hdiff-lib:
+    source-dirs: src/hdiff
+    ghc-options: -O2 -Wall
+
 library:
-  source-dirs: src/
-  ghc-options: -O2 -Wall
+  source-dirs: src/incremental
+  dependencies:
+    - hdiff-lib
 
 tests:
   spec:
@@ -36,12 +40,14 @@ tests:
     source-dirs:
       - tests
     dependencies:
-      - hdiff
+      - QuickCheck
+      - hspec
+      - hdiff-lib
 
 executables:
   hdiff:
     source-dirs:
-      - executable
+      - executable/hdiff
     main: HDiff.hs
     dependencies:
       - parsec
@@ -54,6 +60,6 @@ executables:
       - language-python
       - time
       - deepseq
-      - hdiff
+      - hdiff-lib
     # cpp-options: -DREAL_LANGUAGES
     ghc-options: -XCPP -O2 -Woverlapping-patterns -Winaccessible-code -Wincomplete-patterns -Wincomplete-uni-patterns -Wincomplete-record-updates
