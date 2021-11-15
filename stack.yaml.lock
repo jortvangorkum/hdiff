@@ -5,19 +5,12 @@
 
 packages:
 - completed:
-    cabal-file:
-      size: 1522
-      sha256: 2f7ae3f319bbb9688e1fa3f294d076509ef1b9f7a4031e2eccba00b387b8a648
-    name: simplistic-generics
-    version: 2.0.0
-    git: git@gitlab.com:trupill/simplistic-generics.git
+    hackage: simplistic-generics-2.0.0@sha256:0d1867682a7b451bdb3b1e34a09614ceab065a79c733faa31393fbf33fe01809,1488
     pantry-tree:
-      size: 1044
-      sha256: 96702eef8c6480d524f28c773090457c4684ff5b5422a1928e4d3caed8d3f3c5
-    commit: bc4e4a1f5e850feaed678a76134a4a537fbab581
+      size: 886
+      sha256: 5a4f700901153b694fc3b02fa9032ea60c95d6fef2fe184b3b0258b23fc24e30
   original:
-    git: git@gitlab.com:trupill/simplistic-generics.git
-    commit: bc4e4a1f5e850feaed678a76134a4a537fbab581
+    hackage: simplistic-generics-2.0.0
 - completed:
     hackage: language-lua-0.11.0.1@sha256:b3bdf864965279f830323d5ed7d38073b2687b3a07b7fa73aa13782560f48f89,2919
     pantry-tree:
