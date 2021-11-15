@@ -9,8 +9,7 @@
 {-# LANGUAGE TypeOperators         #-}
 {-# LANGUAGE TypeSynonymInstances  #-}
 
-module Data.HDiff.Diff.Align
-  where
+module Data.HDiff.Diff.Align where
 
 import           Control.DeepSeq
 import           Control.Monad.Identity

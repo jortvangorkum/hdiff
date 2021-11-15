@@ -6,16 +6,15 @@
 --  to produce patches as the result of composition,
 --  you should call 'Data.HDiff.Diff.Closure.close'
 --  manually.
-module Data.HDiff.Compose
-  where
+module Data.HDiff.Compose where
 
 -------------------------------
 
 -------------------------------
-import Data.HDiff.Base
-import Data.HDiff.Diff.Closure
-import Generics.Simplistic.Unify
-import Generics.Simplistic.Util
+import           Data.HDiff.Base
+import           Data.HDiff.Diff.Closure
+import           Generics.Simplistic.Unify
+import           Generics.Simplistic.Util
 
 -- | Change composition. Running @q `chgAfter` p@ will yield a change,
 --  when possible, that changes elements in the domain

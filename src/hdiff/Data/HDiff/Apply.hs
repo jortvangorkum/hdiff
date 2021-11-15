@@ -3,15 +3,14 @@
 {-# LANGUAGE PolyKinds #-}
 -- |Defines the application semantics
 -- for patches and changes.
-module Data.HDiff.Apply
-  where
+module Data.HDiff.Apply where
 
-import Generics.Simplistic.Deep
-import Generics.Simplistic.Unify
-import Generics.Simplistic.Util
+import           Generics.Simplistic.Deep
+import           Generics.Simplistic.Unify
+import           Generics.Simplistic.Util
 ------------------------------------
-import Data.HDiff.Base
-import Data.HDiff.MetaVar
+import           Data.HDiff.Base
+import           Data.HDiff.MetaVar
 
 -- |Semantics of a change as a partial function over 'SFix'
 chgApply :: (All Eq kappa)

@@ -9,17 +9,16 @@
 --  information for both driving the algorithm
 --  and efficiently storing digests alongside
 --  the structure.
-module Data.HDiff.Diff.Preprocess
-  where
+module Data.HDiff.Diff.Preprocess where
 
-import Data.Functor.Const
-import Data.Proxy
+import           Data.Functor.Const
+import           Data.Proxy
 
-import GHC.Generics
-import Generics.Simplistic
-import Generics.Simplistic.Deep
-import Generics.Simplistic.Digest
-import Generics.Simplistic.Util
+import           GHC.Generics
+import           Generics.Simplistic
+import           Generics.Simplistic.Deep
+import           Generics.Simplistic.Digest
+import           Generics.Simplistic.Util
 
 -- |We precompute the digest of a tree and its height
 --  and annotate our fixpoints with this data before

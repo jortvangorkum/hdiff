@@ -6,8 +6,7 @@
 {-# LANGUAGE RankNTypes          #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeOperators       #-}
-module Data.HDiff.Diff.Closure
-  where
+module Data.HDiff.Diff.Closure where
 
 import           Control.Monad.Writer     hiding (All, Sum)
 import           Data.Functor.Sum

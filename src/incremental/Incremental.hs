@@ -1,2 +1,1 @@
-module Incremental
-  where
+module Incremental where
