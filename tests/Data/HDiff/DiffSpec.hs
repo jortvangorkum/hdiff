@@ -1,4 +1,3 @@
-{-# LANGUAGE TypeApplications #-}
 module Data.HDiff.DiffSpec
   ( spec
   ) where
@@ -14,9 +13,11 @@ import           Generics.Simplistic.Deep
 import           Test.Hspec
 import           Test.QuickCheck
 
+import           Control.Monad            (forM_)
 
-diff_wellscoped_changes :: DiffMode -> Property
-diff_wellscoped_changes mode = forAll genSimilarTrees' $ \(t1 , t2)
+
+diffWellScopedChanges :: DiffMode -> Property
+diffWellScopedChanges mode = forAll genSimilarTrees' $ \(t1 , t2)
   -> let patch = hdiffRTreeHM mode 1 t1 t2
       in go $ chgDistr patch
   where
@@ -26,8 +27,8 @@ diff_wellscoped_changes mode = forAll genSimilarTrees' $ \(t1 , t2)
             vi = S.fromList $ holesHolesList ins
          in property $ vd == vi
 
-apply_correctness :: DiffMode -> Property
-apply_correctness mode = forAll genSimilarTrees' $ \(t1 , t2)
+applyCorrectness :: DiffMode -> Property
+applyCorrectness mode = forAll genSimilarTrees' $ \(t1 , t2)
   -> let patch = hdiffRTreeHM mode 1 t1 t2
       in case applyRTree patch t1 of
            Left err -> counterexample ("Apply failed with: " ++ err) False
@@ -37,12 +38,12 @@ diffModeSpec :: DiffMode -> Spec
 diffModeSpec mode = do
   describe "diff" $ do
     it "produce well-scoped changes" $ do
-      diff_wellscoped_changes mode
+      diffWellScopedChanges mode
   describe "apply" $ do
     it "is correct" $ do
-      apply_correctness mode
+      applyCorrectness mode
 
 spec :: Spec
 spec = do
- flip mapM_ (enumFrom (toEnum 0)) $ \m ->
-   describe ("Extraction (" ++ show m ++ ")") $ diffModeSpec m
+  forM_ (enumFrom (toEnum 0)) $ \m ->
+    describe ("Extraction (" ++ show m ++ ")") $ diffModeSpec m

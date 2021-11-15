@@ -3,7 +3,7 @@ cradle:
     - path: "./src/incremental"
       component: "hdiff:lib"
 
-    - path: "./src/hdiff"
+    - path: "./src/hdiff-lib"
       component: "hdiff:lib:hdiff-lib"
 
     - path: "./executable/hdiff/HDiff.hs"
