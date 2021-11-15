@@ -6,7 +6,8 @@
 --  to produce patches as the result of composition,
 --  you should call 'Data.HDiff.Diff.Closure.close'
 --  manually.
-module Data.HDiff.Compose where
+module Data.HDiff.Compose
+  where
 
 -------------------------------
 

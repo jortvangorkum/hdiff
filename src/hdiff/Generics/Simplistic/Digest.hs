@@ -6,7 +6,8 @@
 {-# LANGUAGE ScopedTypeVariables  #-}
 {-# LANGUAGE TypeSynonymInstances #-}
 {-# LANGUAGE UndecidableInstances #-}
-module Generics.Simplistic.Digest where
+module Generics.Simplistic.Digest
+  where
 
 import           Data.Bits
 import qualified Data.ByteArray           as BA

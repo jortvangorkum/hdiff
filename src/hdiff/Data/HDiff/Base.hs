@@ -7,7 +7,8 @@
 {-# LANGUAGE TypeOperators         #-}
 {-# LANGUAGE UndecidableInstances  #-}
 -- |Base definitions for 'Patch' and 'Chg'.
-module Data.HDiff.Base where
+module Data.HDiff.Base
+  where
 
 import           Control.DeepSeq
 import           Control.Monad.Cont

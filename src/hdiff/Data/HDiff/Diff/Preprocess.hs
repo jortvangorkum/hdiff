@@ -9,7 +9,8 @@
 --  information for both driving the algorithm
 --  and efficiently storing digests alongside
 --  the structure.
-module Data.HDiff.Diff.Preprocess where
+module Data.HDiff.Diff.Preprocess
+  where
 
 import Data.Functor.Const
 import Data.Proxy

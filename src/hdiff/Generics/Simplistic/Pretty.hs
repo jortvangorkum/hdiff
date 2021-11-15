@@ -6,7 +6,8 @@
 {-# LANGUAGE TypeSynonymInstances #-}
 {-# LANGUAGE UndecidableInstances #-}
 {-# OPTIONS_GHC -Wno-orphans      #-}
-module Generics.Simplistic.Pretty where
+module Generics.Simplistic.Pretty
+  where
 
 import           Data.Proxy                 (Proxy (..))
 import           Data.Text.Prettyprint.Doc  (Doc)
