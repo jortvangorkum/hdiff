@@ -9,6 +9,7 @@ jobs:
       - name: Check stylish-haskell
         # curl -sSL https://raw.github.com/ndmitchell/hlint/master/misc/run.sh | sh -s .
         run: |
+          ls
           curl -sSL https://raw.github.com/jaspervdj/stylish-haskell/master/scripts/latest.sh -c .stylish-haskell.yaml | sh -s $(find . -type f -name "*.hs" ! -path "*.stack-work*" ! -path "*executable*") -i
           if [ -z "$(git status --porcelain)" ]; then
               echo "No style errors detected."
