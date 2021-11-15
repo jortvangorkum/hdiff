@@ -1,20 +1,22 @@
-{-# LANGUAGE PolyKinds        #-}
-{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE CPP              #-}
 {-# LANGUAGE DataKinds        #-}
 {-# LANGUAGE GADTs            #-}
-{-# LANGUAGE CPP              #-}
+{-# LANGUAGE PolyKinds        #-}
+{-# LANGUAGE TypeApplications #-}
 {-# OPTIONS_GHC -Wno-unused-top-binds #-}
 {-# OPTIONS_GHC -Wno-missing-signatures #-}
 {-# OPTIONS_GHC -Wno-unused-matches #-}
-module Data.HDiff.MergeSpec (spec) where
+module Data.HDiff.MergeSpec
+  ( spec
+  ) where
 
-import Data.HDiff.Merge
 import Data.HDiff.Diff
+import Data.HDiff.Merge
 import Languages.RTree
 import Languages.RTree.Diff
 
-import Test.QuickCheck
 import Test.Hspec
+import Test.QuickCheck
 
 --------------------------------------------
 -- ** Manual Merge Examples

@@ -1,28 +1,29 @@
+{-# LANGUAGE CPP                   #-}
+{-# LANGUAGE DataKinds             #-}
+{-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE GADTs                 #-}
-{-# LANGUAGE StandaloneDeriving    #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE PatternSynonyms       #-}
+{-# LANGUAGE StandaloneDeriving    #-}
+{-# LANGUAGE TemplateHaskell       #-}
+{-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE TypeSynonymInstances  #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE FlexibleInstances     #-}
-{-# LANGUAGE DataKinds             #-}
-{-# LANGUAGE TypeApplications      #-}
-{-# LANGUAGE TemplateHaskell       #-}
-{-# LANGUAGE CPP                   #-}
 {-# OPTIONS_GHC -Wno-orphans                            #-}
 {-# OPTIONS_GHC -Wno-missing-signatures                 #-}
 {-# OPTIONS_GHC -Wno-missing-pattern-synonym-signatures #-}
-module Languages.Java where
+module Languages.Java
+  where
 
 #ifdef REAL_LANGUAGES
 
-import qualified Language.Java.Syntax as Java
-import qualified Language.Java.Parser as Java
-import Control.Monad.Except
+import           Control.Monad.Except
+import qualified Language.Java.Parser        as Java
+import qualified Language.Java.Syntax        as Java
 
-import Generics.Simplistic
-import Generics.Simplistic.Deep
-import Generics.Simplistic.Deep.TH
+import           Generics.Simplistic
+import           Generics.Simplistic.Deep
+import           Generics.Simplistic.Deep.TH
 
 type JavaPrim = '[ Int , Integer , Double , Bool, Char , String ]
 

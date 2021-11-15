@@ -1,27 +1,27 @@
-{-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE FlexibleInstances    #-}
-{-# LANGUAGE TypeSynonymInstances #-}
-{-# LANGUAGE RankNTypes           #-}
+{-# LANGUAGE GADTs                #-}
 {-# LANGUAGE KindSignatures       #-}
 {-# LANGUAGE PolyKinds            #-}
+{-# LANGUAGE RankNTypes           #-}
 {-# LANGUAGE ScopedTypeVariables  #-}
-{-# LANGUAGE GADTs                #-}
+{-# LANGUAGE TypeSynonymInstances #-}
+{-# LANGUAGE UndecidableInstances #-}
 module Generics.Simplistic.Digest where
 
-import Data.Proxy
-import Data.Functor.Const
-import Data.Word (Word8,Word64)
-import Data.Bits
-import Data.List (splitAt,foldl')
-import qualified Data.ByteString        as BS
-import qualified Data.ByteString.Char8  as BS8
-import qualified Data.ByteArray         as BA
+import           Data.Bits
+import qualified Data.ByteArray           as BA
+import qualified Data.ByteString          as BS
+import qualified Data.ByteString.Char8    as BS8
+import           Data.Functor.Const
+import           Data.List                (foldl', splitAt)
+import           Data.Proxy
+import           Data.Word                (Word64, Word8)
 
-import qualified Crypto.Hash            as Hash
-import qualified Crypto.Hash.Algorithms as Hash (Blake2b_256)
+import qualified Crypto.Hash              as Hash
+import qualified Crypto.Hash.Algorithms   as Hash (Blake2b_256)
 
-import Generics.Simplistic
-import Generics.Simplistic.Util
+import           Generics.Simplistic
+import           Generics.Simplistic.Util
 
 -- * Digest Capabilities
 
@@ -73,12 +73,12 @@ authAlg :: forall phi f
 authAlg proj = digestConcat . allDigs . repMap (Const . proj)
   where
     allDigs :: SRep (Const Digest) g -> [Digest]
-    allDigs S_U1     = []
-    allDigs (S_K1 x) = [getConst x]
-    allDigs (S_L1 x) = allDigs x
-    allDigs (S_R1 x) = allDigs x
-    allDigs (S_ST x) = allDigs x
-    allDigs (x :**: y) = allDigs x ++ allDigs y
+    allDigs S_U1            = []
+    allDigs (S_K1 x)        = [getConst x]
+    allDigs (S_L1 x)        = allDigs x
+    allDigs (S_R1 x)        = allDigs x
+    allDigs (S_ST x)        = allDigs x
+    allDigs (x :**: y)      = allDigs x ++ allDigs y
     allDigs (S_M1 m@SM_D x) = hashStr (getDatatypeName m)    : allDigs x
     allDigs (S_M1 m@SM_C x) = hashStr (getConstructorName m) : allDigs x
     allDigs (S_M1 _      x) = allDigs x

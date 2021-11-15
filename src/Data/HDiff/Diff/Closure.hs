@@ -1,22 +1,22 @@
-{-# LANGUAGE FlexibleInstances     #-}
-{-# LANGUAGE ScopedTypeVariables   #-}
-{-# LANGUAGE TypeOperators         #-}
-{-# LANGUAGE PatternSynonyms       #-}
-{-# LANGUAGE RankNTypes            #-}
-{-# LANGUAGE DataKinds             #-}
-{-# LANGUAGE PolyKinds             #-}
-{-# LANGUAGE GADTs                 #-}
+{-# LANGUAGE DataKinds           #-}
+{-# LANGUAGE FlexibleInstances   #-}
+{-# LANGUAGE GADTs               #-}
+{-# LANGUAGE PatternSynonyms     #-}
+{-# LANGUAGE PolyKinds           #-}
+{-# LANGUAGE RankNTypes          #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeOperators       #-}
 module Data.HDiff.Diff.Closure where
 
+import           Control.Monad.Writer     hiding (All, Sum)
 import           Data.Functor.Sum
-import           Control.Monad.Writer hiding (Sum, All)
-import qualified Data.Map as M
+import qualified Data.Map                 as M
 -------------------------------------
-import Generics.Simplistic
-import Generics.Simplistic.Deep
-import Generics.Simplistic.Util
+import           Generics.Simplistic
+import           Generics.Simplistic.Deep
+import           Generics.Simplistic.Util
 -------------------------------------
-import Data.HDiff.Base
+import           Data.HDiff.Base
 
 -- |Enable us to annotate a change with the
 -- variables it declares in its deletion context

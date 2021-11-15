@@ -1,25 +1,25 @@
-{-# LANGUAGE UndecidableInstances #-}
-{-# LANGUAGE FlexibleInstances     #-}
-{-# LANGUAGE TypeOperators         #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE DataKinds             #-}
-{-# LANGUAGE PolyKinds             #-}
+{-# LANGUAGE FlexibleContexts      #-}
+{-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE GADTs                 #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE PolyKinds             #-}
+{-# LANGUAGE TypeOperators         #-}
+{-# LANGUAGE UndecidableInstances  #-}
 -- |Base definitions for 'Patch' and 'Chg'.
 module Data.HDiff.Base where
 
+import           Control.DeepSeq
 import           Control.Monad.Cont
 import           Control.Monad.State
-import           Control.DeepSeq
 import           Data.Functor.Const
-import qualified Data.Map as M
+import qualified Data.Map                 as M
 ------------------------------------
-import Generics.Simplistic
-import Generics.Simplistic.Deep
-import Generics.Simplistic.Util
+import           Generics.Simplistic
+import           Generics.Simplistic.Deep
+import           Generics.Simplistic.Util
 ------------------------------------
-import Data.HDiff.MetaVar
+import           Data.HDiff.MetaVar
 
 -- * Trees augmented with 'MetaVar'iables
 --

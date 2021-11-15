@@ -1,32 +1,32 @@
+{-# LANGUAGE DataKinds        #-}
 {-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE DataKinds #-}
 
 -- | Taken from
 -- https://github.com/nazrhom/vcs-clojure/blob/master/src/Language/Clojure/Parser.hs
 module Languages.Clojure.Parser
-    ( parseTop
-    , parse
-    , parseTest
-    , parseAsExprList
-
+  ( parse
+  , parseAsExprList
+  , parseTest
+  , parseTop
     -- AST
-    , Expr(..)
-    , FormTy(..)
-    , CollTy(..)
-    , Term(..)
-    , Tag(..)
-    , SepExprList(..)
-    , Sep(..)
-    ) where
+  , CollTy (..)
+  , Expr (..)
+  , FormTy (..)
+  , Sep (..)
+  , SepExprList (..)
+  , Tag (..)
+  , Term (..)
+  ) where
 
-import Text.Parsec hiding (Empty)
-import Text.Parsec.Token hiding (braces, parens, brackets, identifier, operator)
-import Text.Parsec.Language
-import Data.Char hiding (Space)
-import qualified Data.Text as T
-import Data.Proxy
+import           Data.Char                hiding (Space)
+import           Data.Proxy
+import qualified Data.Text                as T
+import           Text.Parsec              hiding (Empty)
+import           Text.Parsec.Language
+import           Text.Parsec.Token        hiding (braces, brackets, identifier,
+                                           operator, parens)
 
-import Languages.Clojure.Syntax
+import           Languages.Clojure.Syntax
 
 lexer = makeTokenParser javaStyle
   { identStart = alphaNum <|> oneOf "_':*-&."
@@ -48,9 +48,9 @@ parseAsExprList = do
   -- whiteSpace lexer *> (many parseSingleExpr) <* whiteSpace lexer <* eof
 
 walkSeq (Seq a Empty) = a : []
-walkSeq (Seq a b) = a : walkSeq b
-walkSeq (Empty) = [Empty]
-walkSeq e = error $ "nowalk" ++ show e
+walkSeq (Seq a b)     = a : walkSeq b
+walkSeq (Empty)       = [Empty]
+walkSeq e             = error $ "nowalk" ++ show e
 
 parseExpr = choice
   [ try parseSpecial

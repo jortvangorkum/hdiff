@@ -1,24 +1,24 @@
-{-# LANGUAGE UndecidableInstances  #-}
-{-# LANGUAGE FlexibleInstances     #-}
-{-# LANGUAGE RankNTypes            #-}
-{-# LANGUAGE PolyKinds             #-}
-{-# LANGUAGE DataKinds             #-}
-{-# LANGUAGE GADTs                 #-}
+{-# LANGUAGE DataKinds            #-}
+{-# LANGUAGE FlexibleInstances    #-}
+{-# LANGUAGE GADTs                #-}
+{-# LANGUAGE PolyKinds            #-}
+{-# LANGUAGE RankNTypes           #-}
+{-# LANGUAGE UndecidableInstances #-}
 {-# OPTIONS_GHC -Wno-orphans       #-}
 module Data.HDiff.Show where
 
+import qualified Data.Text                                 as T
 import           Data.Text.Prettyprint.Doc
 import           Data.Text.Prettyprint.Doc.Render.Terminal
-import qualified Data.Text as T
 -------------------------------------
-import Generics.Simplistic.Deep
-import Generics.Simplistic.Util
-import Generics.Simplistic.Unify
-import Generics.Simplistic.Pretty
+import           Generics.Simplistic.Deep
+import           Generics.Simplistic.Pretty
+import           Generics.Simplistic.Unify
+import           Generics.Simplistic.Util
 -------------------------------------
-import qualified Data.HDiff.Base    as D
-import qualified Data.HDiff.MetaVar as D
-import qualified Data.HDiff.Diff.Align as D
+import qualified Data.HDiff.Base                           as D
+import qualified Data.HDiff.Diff.Align                     as D
+import qualified Data.HDiff.MetaVar                        as D
 
 -- import qualified Data.HDiff.Merge   as D
 
@@ -121,7 +121,7 @@ instance ShowHO (D.MetaVar kappa fam) where
   showHO = show
 
 instance (All Show kappa) => Show (UnifyErr kappa fam (D.MetaVar kappa fam)) where
-  show (OccursCheck xs) = "OccursCheck " ++ show xs
+  show (OccursCheck xs)  = "OccursCheck " ++ show xs
   show (SymbolClash x y) = "SymbolClash " ++ show x ++ " /= " ++ show y
 
 {-

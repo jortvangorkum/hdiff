@@ -1,26 +1,26 @@
-{-# LANGUAGE FlexibleInstances           #-}
-{-# LANGUAGE ScopedTypeVariables         #-}
-{-# LANGUAGE TypeOperators               #-}
-{-# LANGUAGE PatternSynonyms             #-}
-{-# LANGUAGE RankNTypes                  #-}
-{-# LANGUAGE DataKinds                   #-}
-{-# LANGUAGE PolyKinds                   #-}
-{-# LANGUAGE GADTs                       #-}
+{-# LANGUAGE DataKinds           #-}
+{-# LANGUAGE FlexibleInstances   #-}
+{-# LANGUAGE GADTs               #-}
+{-# LANGUAGE PatternSynonyms     #-}
+{-# LANGUAGE PolyKinds           #-}
+{-# LANGUAGE RankNTypes          #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeOperators       #-}
 module Data.HDiff.Diff.Modes where
 
-import qualified Data.Set as S
 import           Data.Functor.Const
+import qualified Data.Set                   as S
 
 import           GHC.Generics
 import           Generics.Simplistic
 import           Generics.Simplistic.Deep
-import           Generics.Simplistic.Util
 import           Generics.Simplistic.Digest
+import           Generics.Simplistic.Util
 
-import qualified Data.WordTrie as T
 import           Data.HDiff.Diff.Preprocess
 import           Data.HDiff.Diff.Types
 import           Data.HDiff.MetaVar
+import qualified Data.WordTrie              as T
 
 
 -- |A predicate indicating whether a tree can be shared.

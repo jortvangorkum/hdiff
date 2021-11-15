@@ -1,21 +1,21 @@
-{-# LANGUAGE UndecidableInstances #-}
-{-# LANGUAGE FlexibleInstances    #-}
-{-# LANGUAGE TypeSynonymInstances #-}
-{-# LANGUAGE RankNTypes           #-}
 {-# LANGUAGE DataKinds            #-}
+{-# LANGUAGE FlexibleInstances    #-}
 {-# LANGUAGE PolyKinds            #-}
+{-# LANGUAGE RankNTypes           #-}
 {-# LANGUAGE ScopedTypeVariables  #-}
+{-# LANGUAGE TypeSynonymInstances #-}
+{-# LANGUAGE UndecidableInstances #-}
 {-# OPTIONS_GHC -Wno-orphans      #-}
 module Generics.Simplistic.Pretty where
 
-import           Data.Proxy                   (Proxy(..))
-import           Data.Text.Prettyprint.Doc    (Doc)
-import qualified Data.Text.Prettyprint.Doc as PP
+import           Data.Proxy                 (Proxy (..))
+import           Data.Text.Prettyprint.Doc  (Doc)
+import qualified Data.Text.Prettyprint.Doc  as PP
 
-import Generics.Simplistic
-import Generics.Simplistic.Deep
-import Generics.Simplistic.Zipper
-import Generics.Simplistic.Util
+import           Generics.Simplistic
+import           Generics.Simplistic.Deep
+import           Generics.Simplistic.Util
+import           Generics.Simplistic.Zipper
 
 repPretty :: (forall x . phi x -> Doc ann)
           -> SRep phi f -> Doc ann

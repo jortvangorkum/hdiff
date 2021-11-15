@@ -1,25 +1,43 @@
 name: HDiff GitHub Actions
 on: [push]
 jobs:
-  runhaskell:
-    name: Build and Test
+  linting-haskell:
+    name: Linting Haskell
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
-    - uses: haskell/actions/setup@v1
-      with:
-        enable-stack: true
-        ghc-version: 8.6.5
-        cabal-version: 'latest'
-        stack-version: 'latest'
-    - name: Cache Stack
-      uses: actions/cache@v2
-      with:
-        path: | 
-          ~/.stack
-          .stack-work
-        key: ${{ runner.os }}-stack-${{ hashFiles('stack.yaml.lock', 'package.yaml') }}
-        restore-keys: |
-          ${{ runner.os }}-stack
-    - run: stack build
-    - run: stack test
+      - uses: actions/checkout@v2
+      - name: Check stylish-haskell
+        # curl -sSL https://raw.github.com/ndmitchell/hlint/master/misc/run.sh | sh -s .
+        run: |
+          curl -sSL https://raw.github.com/jaspervdj/stylish-haskell/master/scripts/latest.sh | sh -s $(find . -type f -name "*.hs" ! -path "*.stack-work*" ! -path "*executable*") -i
+          if [ -z "$(git status --porcelain)" ]; then
+              echo "No style errors detected."
+          else
+              echo "Style errors detected:"
+              git --no-pager diff
+              exit 1
+          fi
+
+  runhaskell:
+    name: Build and Test
+    needs: linting-haskell
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: haskell/actions/setup@v1
+        with:
+          enable-stack: true
+          ghc-version: 8.6.5
+          cabal-version: "latest"
+          stack-version: "latest"
+      - name: Cache Stack
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.stack
+            .stack-work
+          key: ${{ runner.os }}-stack-${{ hashFiles('stack.yaml.lock', 'package.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-stack
+      - run: stack build
+      - run: stack test

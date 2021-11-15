@@ -1,13 +1,13 @@
-{-# LANGUAGE DataKinds             #-}
-{-# LANGUAGE PolyKinds             #-}
-{-# LANGUAGE GADTs                 #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE GADTs     #-}
+{-# LANGUAGE PolyKinds #-}
 -- |Defines the application semantics
 -- for patches and changes.
 module Data.HDiff.Apply where
 
 import Generics.Simplistic.Deep
-import Generics.Simplistic.Util
 import Generics.Simplistic.Unify
+import Generics.Simplistic.Util
 ------------------------------------
 import Data.HDiff.Base
 import Data.HDiff.MetaVar

@@ -1,29 +1,30 @@
-{-# LANGUAGE DeriveGeneric #-}
-{-# LANGUAGE TemplateHaskell       #-}
+{-# LANGUAGE CPP                   #-}
+{-# LANGUAGE DataKinds             #-}
+{-# LANGUAGE DeriveGeneric         #-}
+{-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE GADTs                 #-}
-{-# LANGUAGE StandaloneDeriving    #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE PatternSynonyms       #-}
+{-# LANGUAGE StandaloneDeriving    #-}
+{-# LANGUAGE TemplateHaskell       #-}
+{-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE TypeSynonymInstances  #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE FlexibleInstances     #-}
-{-# LANGUAGE DataKinds             #-}
-{-# LANGUAGE TypeApplications      #-}
-{-# LANGUAGE CPP                   #-}
 {-# OPTIONS_GHC -Wno-orphans                            #-}
 {-# OPTIONS_GHC -Wno-missing-signatures                 #-}
 {-# OPTIONS_GHC -Wno-missing-pattern-synonym-signatures #-}
-module Languages.Clojure.Interface where
+module Languages.Clojure.Interface
+  where
 
-import Languages.Clojure.Syntax
-import qualified Languages.Clojure.Parser as Clj
+import qualified Languages.Clojure.Parser    as Clj
+import           Languages.Clojure.Syntax
 
-import Data.Text (Text)
-import Control.Monad.Except
+import           Control.Monad.Except
+import           Data.Text                   (Text)
 
-import GHC.Generics
-import Generics.Simplistic.Deep
-import Generics.Simplistic.Deep.TH
+import           GHC.Generics
+import           Generics.Simplistic.Deep
+import           Generics.Simplistic.Deep.TH
 
 type CljPrims = '[ Text ]
 

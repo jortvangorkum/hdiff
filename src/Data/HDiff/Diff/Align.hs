@@ -1,32 +1,32 @@
-{-# LANGUAGE QuantifiedConstraints #-}
+{-# LANGUAGE DataKinds             #-}
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE FlexibleInstances     #-}
-{-# LANGUAGE TypeSynonymInstances  #-}
-{-# LANGUAGE RankNTypes            #-}
-{-# LANGUAGE TypeOperators         #-}
 {-# LANGUAGE GADTs                 #-}
-{-# LANGUAGE ScopedTypeVariables   #-}
-{-# LANGUAGE DataKinds             #-}
 {-# LANGUAGE PolyKinds             #-}
+{-# LANGUAGE QuantifiedConstraints #-}
+{-# LANGUAGE RankNTypes            #-}
+{-# LANGUAGE ScopedTypeVariables   #-}
+{-# LANGUAGE TypeOperators         #-}
+{-# LANGUAGE TypeSynonymInstances  #-}
 
 module Data.HDiff.Diff.Align where
 
-import           Data.Proxy
-import           Data.Functor.Const
-import           Data.Type.Equality
-import qualified Data.Map as M
+import           Control.DeepSeq
 import           Control.Monad.Identity
 import           Control.Monad.State
-import           Control.DeepSeq
+import           Data.Functor.Const
+import qualified Data.Map                   as M
+import           Data.Proxy
+import           Data.Type.Equality
 import           GHC.Generics
 -----------------------------------
-import Generics.Simplistic
-import Generics.Simplistic.Deep
-import Generics.Simplistic.Util hiding (Delta)
-import Generics.Simplistic.Zipper
+import           Generics.Simplistic
+import           Generics.Simplistic.Deep
+import           Generics.Simplistic.Util   hiding (Delta)
+import           Generics.Simplistic.Zipper
 -----------------------------------
-import Data.HDiff.Base
-import Data.HDiff.MetaVar
+import           Data.HDiff.Base
+import           Data.HDiff.MetaVar
 
 -- * Alignments
 --
@@ -148,10 +148,10 @@ alRefineM :: (Monad m)
           -> m (Al' kappa fam g ty)
 alRefineM f (Del (Zipper z h)) = (Del . Zipper z) <$> alRefineM f h
 alRefineM f (Ins (Zipper z h)) = (Ins . Zipper z) <$> alRefineM f h
-alRefineM f (Spn spn) = Spn <$> repMapM (alRefineM f) spn
-alRefineM _ (Cpy x)   = return $ Cpy x
-alRefineM _ (Prm x y) = return $ Prm x y
-alRefineM f (Mod x)   = f x
+alRefineM f (Spn spn)          = Spn <$> repMapM (alRefineM f) spn
+alRefineM _ (Cpy x)            = return $ Cpy x
+alRefineM _ (Prm x y)          = return $ Prm x y
+alRefineM f (Mod x)            = f x
 
 -- |Maps over the leaves
 alMapM :: (Monad m)
