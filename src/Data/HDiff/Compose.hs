@@ -37,7 +37,7 @@ chgAfter q p = do
 (.!) :: (All Eq kappa)
      => Patch kappa fam at -> Patch kappa fam at
      -> Maybe (Patch kappa fam at)
-q .! p = close <$> (chgDistr q) `chgAfter` (chgDistr p')
+q .! p = close <$> chgDistr q `chgAfter` chgDistr p'
   where
     p' = p `withFreshNamesFrom` q
 
