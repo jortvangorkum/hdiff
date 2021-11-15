@@ -14,12 +14,12 @@
 {-# LANGUAGE TypeSynonymInstances  #-}
 module Languages.RTree.Diff where
 
-import Data.HDiff.Apply
-import Data.HDiff.Base
-import Data.HDiff.Diff
-import Languages.RTree
+import           Data.HDiff.Apply
+import           Data.HDiff.Base
+import           Data.HDiff.Diff
+import           Languages.RTree
 
-import Generics.Simplistic.Deep
+import           Generics.Simplistic.Deep
 
 type PatchRTree = Patch RTreePrims RTreeFam RTree
 
