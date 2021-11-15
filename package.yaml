@@ -40,12 +40,12 @@ tests:
     source-dirs:
       - tests
     dependencies:
+      - hdiff-lib
       - QuickCheck
       - hspec
-      - hdiff-lib
 
 executables:
-  hdiff:
+  hdiff-exec:
     source-dirs:
       - executable/hdiff
     main: HDiff.hs

@@ -1,2 +1,55 @@
 cradle:
   stack:
+    - path: "./src/incremental"
+      component: "hdiff:lib"
+
+    - path: "./src/hdiff"
+      component: "hdiff:lib:hdiff-lib"
+
+    - path: "./executable/hdiff/HDiff.hs"
+      component: "hdiff:exe:hdiff-exec"
+
+    - path: "./executable/hdiff/HDiff/Options.hs"
+      component: "hdiff:exe:hdiff-exec"
+
+    - path: "./executable/hdiff/Languages/Bash.hs"
+      component: "hdiff:exe:hdiff-exec"
+
+    - path: "./executable/hdiff/Languages/Clojure/Interface.hs"
+      component: "hdiff:exe:hdiff-exec"
+
+    - path: "./executable/hdiff/Languages/Clojure/Parser.hs"
+      component: "hdiff:exe:hdiff-exec"
+
+    - path: "./executable/hdiff/Languages/Clojure/Syntax.hs"
+      component: "hdiff:exe:hdiff-exec"
+
+    - path: "./executable/hdiff/Languages/Dyck.hs"
+      component: "hdiff:exe:hdiff-exec"
+
+    - path: "./executable/hdiff/Languages/Interface.hs"
+      component: "hdiff:exe:hdiff-exec"
+
+    - path: "./executable/hdiff/Languages/Java.hs"
+      component: "hdiff:exe:hdiff-exec"
+
+    - path: "./executable/hdiff/Languages/JavaScript.hs"
+      component: "hdiff:exe:hdiff-exec"
+
+    - path: "./executable/hdiff/Languages/Lines.hs"
+      component: "hdiff:exe:hdiff-exec"
+
+    - path: "./executable/hdiff/Languages/Lua.hs"
+      component: "hdiff:exe:hdiff-exec"
+
+    - path: "./executable/hdiff/Languages/Python.hs"
+      component: "hdiff:exe:hdiff-exec"
+
+    - path: "./executable/hdiff/Languages/While.hs"
+      component: "hdiff:exe:hdiff-exec"
+
+    - path: "./executable/hdiff/Paths_hdiff.hs"
+      component: "hdiff:exe:hdiff-exec"
+
+    - path: "./tests"
+      component: "hdiff:test:spec"
