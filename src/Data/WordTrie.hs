@@ -1,6 +1,5 @@
 {-# LANGUAGE TupleSections #-}
-module Data.WordTrie
-  where
+module Data.WordTrie where
 
 import           Control.Arrow (first, second, (***))
 import           Prelude       hiding (lookup, zipWith)

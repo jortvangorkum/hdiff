@@ -6,8 +6,7 @@
 {-# LANGUAGE RankNTypes          #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeOperators       #-}
-module Data.HDiff.Diff.Modes
-  where
+module Data.HDiff.Diff.Modes where
 
 import           Data.Functor.Const
 import qualified Data.Set                   as S

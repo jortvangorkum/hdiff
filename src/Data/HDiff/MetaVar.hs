@@ -10,8 +10,7 @@
 -- |Exports a bunch of functionality for handling metavariables
 --  both over recursive positions only, with 'MetaVarI' and over
 --  recursive positions and constants, 'MetaVarIK'.
-module Data.HDiff.MetaVar
-  where
+module Data.HDiff.MetaVar where
 
 import Control.DeepSeq
 import Data.Function            (on)

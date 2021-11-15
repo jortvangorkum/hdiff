@@ -1,5 +1,4 @@
-module Data.HDiff.Diff.Types
-  where
+module Data.HDiff.Diff.Types where
 
 import qualified Data.WordTrie as T
 

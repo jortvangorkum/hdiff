@@ -1,15 +1,15 @@
-{-# LANGUAGE TemplateHaskell       #-}
+{-# LANGUAGE TemplateHaskell #-}
 module HDiff.Options where
 
 
-import           Data.Foldable (asum)
-import           Data.Semigroup ((<>))
-import qualified Data.List as L (lookup)
+import           Data.Foldable       (asum)
+import qualified Data.List           as L (lookup)
+import           Data.Semigroup      ((<>))
 import           Development.GitRev
 import           Options.Applicative
 
-import qualified Data.HDiff.Diff         as D
-import           Languages.Interface (parserExtension, mainParsers)
+import qualified Data.HDiff.Diff     as D
+import           Languages.Interface (mainParsers, parserExtension)
 
 
 ---------------------------
@@ -30,13 +30,13 @@ vERSION_STR = "hdiff 0.0.5 [" ++ $(gitBranch) ++ "@" ++ $(gitHash) ++ "]"
 data Options
   = AST     { optFileA :: FilePath
             }
-  | Diff    { optFileA     :: FilePath
-            , optFileB     :: FilePath
-            , testApply    :: Bool
-            , minHeight    :: Int
-            , diffMode     :: D.DiffMode
-            , globScoped   :: Bool
-            , withStats    :: Bool
+  | Diff    { optFileA   :: FilePath
+            , optFileB   :: FilePath
+            , testApply  :: Bool
+            , minHeight  :: Int
+            , diffMode   :: D.DiffMode
+            , globScoped :: Bool
+            , withStats  :: Bool
             }
   | Merge   { optFileA     :: FilePath
             , optFileO     :: FilePath
@@ -50,7 +50,7 @@ data Options
   deriving (Eq , Show)
 
 data OptionMode
-  = OptAST | OptDiff | OptMerge 
+  = OptAST | OptDiff | OptMerge
   deriving (Eq , Show)
 
 astOpts :: Parser Options
@@ -77,7 +77,7 @@ diffmodeOpt = option (readmOneOf [("proper"  , D.DM_ProperShare)
            <> value D.DM_NoNested
            <> help aux
            <> hidden)
-  where    
+  where
     aux = unwords
       ["Controls how context extraction works. Check 'Data.HDiff.Diff.Types'"
       , "and 'Data.HDiff.Diff.Modes' for documentation."
@@ -89,7 +89,7 @@ globScopedOpt = switch ( long "global-scope"
                                   ,"consequently no spine is available and the patch"
                                   ,"will consist in a single change"
                                   ]))
-      
+
 
 diffOpts :: Parser Options
 diffOpts =
@@ -100,10 +100,10 @@ diffOpts =
                  <> hidden)
        <*> minheightOpt
        <*> diffmodeOpt
-       <*> globScopedOpt 
+       <*> globScopedOpt
        <*> switch ( long "with-stats"
                  <> help "Produces statistics; suppresses the output of the patch")
-                 
+
 
 
 testmergeOpt :: Parser (Maybe FilePath)
@@ -121,7 +121,7 @@ listconfsOpt
            ( long "list-conflicts-to"
            <> help ("If the produced patch contains conflicts, will list them"
                  ++ "one per line to the supplied file; the file will be opened in APPEND mode.")
-           <> value Nothing) 
+           <> value Nothing)
 
 mergeOpts :: Parser Options
 mergeOpts =
@@ -131,7 +131,7 @@ mergeOpts =
         <*> testmergeOpt
         <*> minheightOpt
         <*> diffmodeOpt
-        <*> globScopedOpt 
+        <*> globScopedOpt
         <*> listconfsOpt
 
 
@@ -144,7 +144,7 @@ parseOptions = hsubparser
   <> command "merge" (info mergeOpts
         (progDesc "Runs the merge algorithm on the specified files"))
   ) <|> diffOpts
-  
+
 data Verbosity
   = Quiet
   | Normal
@@ -177,7 +177,7 @@ parserOpts = option (fmap Just str)
                     <> help ("Which parser to use; Available options are: "
                             ++ unwords (map (++ "; ") possibleParsers)
                             ++ "\nIf none is given, will try to infer from the file extension."))
-                    
+
 possibleParsers :: [String]
 possibleParsers = map parserExtension mainParsers
 
@@ -185,9 +185,9 @@ versionOpts :: Parser (a -> a)
 versionOpts = infoOption vERSION_STR (long "version")
 
 optionMode :: Options -> OptionMode
-optionMode (AST _)                  = OptAST
-optionMode (Merge _ _ _ _ _ _ _ _)  = OptMerge
-optionMode (Diff _ _ _ _ _ _ _)     = OptDiff
+optionMode (AST _)                 = OptAST
+optionMode (Merge _ _ _ _ _ _ _ _) = OptMerge
+optionMode (Diff _ _ _ _ _ _ _)    = OptDiff
 
 
 hdiffOpts :: ParserInfo (Verbosity , SelectedFileParser , Options)
@@ -206,6 +206,6 @@ hdiffOpts = info ((,,) <$> verbosity <*> parserOpts <*> parseOptions
            , "the --test-merge option and 'diff' with the --test-apply option]"
            , "[3 ; Application differs; returned by 'merge' with"
            , "the --test-merge option]"
-           , "[10; Parse Failure]" 
+           , "[10; Parse Failure]"
            ]
-            
+

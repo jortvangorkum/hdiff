@@ -1,31 +1,31 @@
-{-# LANGUAGE DeriveGeneric #-}
-{-# LANGUAGE StandaloneDeriving    #-}
-{-# LANGUAGE RankNTypes            #-}
-{-# LANGUAGE FlexibleInstances     #-}
-{-# LANGUAGE TypeSynonymInstances  #-}
-{-# LANGUAGE PatternSynonyms       #-}
-{-# LANGUAGE DeriveDataTypeable    #-}
-{-# LANGUAGE TemplateHaskell       #-}
 {-# LANGUAGE DataKinds             #-}
-{-# LANGUAGE PolyKinds             #-}
+{-# LANGUAGE DeriveDataTypeable    #-}
+{-# LANGUAGE DeriveGeneric         #-}
+{-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE GADTs                 #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE PatternSynonyms       #-}
+{-# LANGUAGE PolyKinds             #-}
+{-# LANGUAGE RankNTypes            #-}
+{-# LANGUAGE StandaloneDeriving    #-}
+{-# LANGUAGE TemplateHaskell       #-}
 {-# LANGUAGE TypeApplications      #-}
+{-# LANGUAGE TypeSynonymInstances  #-}
 {-# OPTIONS_GHC -Wno-missing-signatures                 #-}
 {-# OPTIONS_GHC -Wno-missing-pattern-synonym-signatures #-}
 module Languages.While where
 
-import Text.ParserCombinators.Parsec
-import Text.ParserCombinators.Parsec.Expr
-import Text.ParserCombinators.Parsec.Language
-import qualified Text.ParserCombinators.Parsec.Token as Token
+import           Text.ParserCombinators.Parsec
+import           Text.ParserCombinators.Parsec.Expr
+import           Text.ParserCombinators.Parsec.Language
+import qualified Text.ParserCombinators.Parsec.Token    as Token
 
 import           Control.Monad
 import           Control.Monad.Except
 
-import GHC.Generics hiding (Prefix , Infix)
-import Generics.Simplistic.Deep
-import Generics.Simplistic.Deep.TH
+import           GHC.Generics                           hiding (Infix, Prefix)
+import           Generics.Simplistic.Deep
+import           Generics.Simplistic.Deep.TH
 
 -----------------------
 -- * Parser

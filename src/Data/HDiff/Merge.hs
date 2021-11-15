@@ -12,8 +12,7 @@
 {-# LANGUAGE TypeOperators         #-}
 {-# LANGUAGE UndecidableInstances  #-}
 {-# OPTIONS_GHC -Wno-orphans       #-}
-module Data.HDiff.Merge
-  where
+module Data.HDiff.Merge where
 
 import           Control.Monad.Cont
 import           Control.Monad.Except

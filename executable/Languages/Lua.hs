@@ -1,14 +1,14 @@
-{-# LANGUAGE TemplateHaskell       #-}
+{-# LANGUAGE CPP                   #-}
+{-# LANGUAGE DataKinds             #-}
+{-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE GADTs                 #-}
-{-# LANGUAGE StandaloneDeriving    #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE PatternSynonyms       #-}
+{-# LANGUAGE StandaloneDeriving    #-}
+{-# LANGUAGE TemplateHaskell       #-}
+{-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE TypeSynonymInstances  #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE FlexibleInstances     #-}
-{-# LANGUAGE DataKinds             #-}
-{-# LANGUAGE TypeApplications      #-}
-{-# LANGUAGE CPP                   #-}
 {-# OPTIONS_GHC -Wno-orphans                            #-}
 {-# OPTIONS_GHC -Wno-missing-signatures                 #-}
 {-# OPTIONS_GHC -Wno-missing-pattern-synonym-signatures #-}
@@ -16,15 +16,15 @@ module Languages.Lua where
 
 #ifdef REAL_LANGUAGES
 
-import Language.Lua.Syntax
-import qualified Language.Lua.Parser as Lua
+import qualified Language.Lua.Parser         as Lua
+import           Language.Lua.Syntax
 
-import Data.Text (Text)
-import Control.Monad.Except
+import           Control.Monad.Except
+import           Data.Text                   (Text)
 
-import Generics.Simplistic
-import Generics.Simplistic.Deep
-import Generics.Simplistic.Deep.TH
+import           Generics.Simplistic
+import           Generics.Simplistic.Deep
+import           Generics.Simplistic.Deep.TH
 
 type LuaPrim = '[ Text , Bool ]
 type LuaFam =

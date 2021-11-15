@@ -1,8 +1,26 @@
 name: HDiff GitHub Actions
 on: [push]
 jobs:
+  linting-haskell:
+    name: Linting Haskell
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Check hlint and stylish
+        run: |
+          curl -sSL https://raw.github.com/ndmitchell/hlint/master/misc/run.sh | sh -s .
+          curl -sSL https://raw.github.com/jaspervdj/stylish-haskell/master/scripts/latest.sh | sh -s $(find . -type f -name "*.hs" ! -path "*.stack-work*") -i
+          if [ -z "$(git status --porcelain)" ]; then
+              echo "No style errors detected."
+          else
+              echo "Style errors detected:"
+              git --no-pager diff
+              exit 1
+          fi
+
   runhaskell:
     name: Build and Test
+    needs: linting-haskell
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -23,20 +41,3 @@ jobs:
             ${{ runner.os }}-stack
       - run: stack build
       - run: stack test
-
-  linting-haskell:
-    name: Linting Haskell
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - name: Check hlint and stylish
-        run: |
-          curl -sSL https://raw.github.com/ndmitchell/hlint/master/misc/run.sh | sh -s .
-          curl -sSL https://raw.github.com/jaspervdj/stylish-haskell/master/scripts/latest.sh | sh -s $(find . -type f -name "*.hs" ! -path "*.stack-work*") -i
-          if [ -z "$(git status --porcelain)" ]; then
-              echo "No style errors detected."
-          else
-              echo "Style errors detected:"
-              git --no-pager diff
-              exit 1
-          fi

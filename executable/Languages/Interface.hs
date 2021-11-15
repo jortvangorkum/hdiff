@@ -1,36 +1,36 @@
-{-# LANGUAGE QuantifiedConstraints  #-}
+{-# LANGUAGE CPP                    #-}
 {-# LANGUAGE ConstraintKinds        #-}
-{-# LANGUAGE RankNTypes             #-}
 {-# LANGUAGE DataKinds              #-}
-{-# LANGUAGE PolyKinds              #-}
-{-# LANGUAGE KindSignatures         #-}
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE GADTs                  #-}
+{-# LANGUAGE KindSignatures         #-}
+{-# LANGUAGE PolyKinds              #-}
+{-# LANGUAGE QuantifiedConstraints  #-}
+{-# LANGUAGE RankNTypes             #-}
 {-# LANGUAGE TypeApplications       #-}
-{-# LANGUAGE CPP                    #-}
 module Languages.Interface where
 
-import Data.List (elemIndex , splitAt)
+import           Data.List                   (elemIndex, splitAt)
 
-import Control.Monad.Except
+import           Control.Monad.Except
 
-import Generics.Simplistic.Deep
-import Generics.Simplistic.Digest
-import Generics.Simplistic.Util
+import           Generics.Simplistic.Deep
+import           Generics.Simplistic.Digest
+import           Generics.Simplistic.Util
 
-import System.IO
-import System.Exit
+import           System.Exit
+import           System.IO
 
-import qualified Languages.While             as While
-import qualified Languages.Lines             as Lines
 import qualified Languages.Dyck              as Dyck
+import qualified Languages.Lines             as Lines
+import qualified Languages.While             as While
 #ifdef REAL_LANGUAGES
-import qualified Languages.Java              as Java
-import qualified Languages.Lua               as Lua
-import qualified Languages.Clojure.Interface as Clj
-import qualified Languages.JavaScript        as JS
-import qualified Languages.Python            as Py
 import qualified Languages.Bash              as Sh
+import qualified Languages.Clojure.Interface as Clj
+import qualified Languages.Java              as Java
+import qualified Languages.JavaScript        as JS
+import qualified Languages.Lua               as Lua
+import qualified Languages.Python            as Py
 #endif
 
 redirectErr :: ExceptT String IO a -> IO a
@@ -65,7 +65,7 @@ mainParsers
 
 type LangCnstr kappa fam ix
   = (All Digestible kappa , All Eq kappa , All Show kappa)
-    
+
 data LangParser :: * where
   LangParser :: (LangCnstr kappa fams ix)
              -- |Language extension
@@ -91,7 +91,7 @@ data VectorOf (a :: *) (n :: Nat) :: * where
   VS :: a -> VectorOf a n -> VectorOf a ('S n)
 
 vecMapM :: (Monad m) => (a -> m b) -> VectorOf a n -> m (VectorOf b n)
-vecMapM _ V0 = return V0
+vecMapM _ V0        = return V0
 vecMapM f (VS x xs) = VS <$> f x <*> vecMapM f xs
 
 -- |Given a language parser and a vector of files, attempts
@@ -101,8 +101,8 @@ vecMapM f (VS x xs) = VS <$> f x <*> vecMapM f xs
 withParsedEl :: LangParser
              -> VectorOf FilePath ('S n)
              -> (forall kappa fam ix
-                 . (LangCnstr kappa fam ix) 
-                => (FilePath -> IO (SFix kappa fam ix)) 
+                 . (LangCnstr kappa fam ix)
+                => (FilePath -> IO (SFix kappa fam ix))
                 -> VectorOf (SFix kappa fam ix) ('S n)
                 -> IO res)
              -> ExceptT String IO res
@@ -119,7 +119,7 @@ parserSelect sel ps xs = maybe (throwError "No available parser") return
   where
     vHead :: VectorOf a ('S n) -> a
     vHead (VS a _) = a
-    
+
     getSuffix :: String -> Maybe String
     getSuffix str = maybe Nothing (Just . tail . snd . flip splitAt str)
                   $ elemIndex '.' str

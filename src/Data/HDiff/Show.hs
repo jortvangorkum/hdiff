@@ -5,8 +5,7 @@
 {-# LANGUAGE RankNTypes           #-}
 {-# LANGUAGE UndecidableInstances #-}
 {-# OPTIONS_GHC -Wno-orphans       #-}
-module Data.HDiff.Show
-  where
+module Data.HDiff.Show where
 
 import qualified Data.Text                                 as T
 import           Data.Text.Prettyprint.Doc

@@ -1,43 +1,45 @@
 {-# LANGUAGE BangPatterns          #-}
-{-# LANGUAGE QuantifiedConstraints #-}
-{-# LANGUAGE RankNTypes            #-}
-{-# LANGUAGE FlexibleInstances     #-}
-{-# LANGUAGE TypeSynonymInstances  #-}
-{-# LANGUAGE PatternSynonyms       #-}
-{-# LANGUAGE DeriveDataTypeable    #-}
+{-# LANGUAGE CPP                   #-}
 {-# LANGUAGE DataKinds             #-}
-{-# LANGUAGE PolyKinds             #-}
+{-# LANGUAGE DeriveDataTypeable    #-}
+{-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE GADTs                 #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE TypeApplications      #-}
+{-# LANGUAGE PatternSynonyms       #-}
+{-# LANGUAGE PolyKinds             #-}
+{-# LANGUAGE QuantifiedConstraints #-}
+{-# LANGUAGE RankNTypes            #-}
 {-# LANGUAGE ScopedTypeVariables   #-}
-{-# LANGUAGE CPP                   #-}
+{-# LANGUAGE TypeApplications      #-}
+{-# LANGUAGE TypeSynonymInstances  #-}
 {-# OPTIONS_GHC -Wno-incomplete-patterns #-}
 -- |Illustrates the usage of MRSOP with a custom
 --  opaque type universe and the use of HDiff to
 --  compute diffs over various languages.
 --
-module Main (main) where
+module Main
+  ( main
+  ) where
 
-import System.IO
-import System.Exit
-import Control.Monad
-import Control.DeepSeq
-import qualified Control.Exception as Exc
-import System.CPUTime
-import Options.Applicative
+import           Control.DeepSeq
+import qualified Control.Exception        as Exc
+import           Control.Monad
+import           Options.Applicative
+import           System.CPUTime
+import           System.Exit
+import           System.IO
 
-import Generics.Simplistic.Deep
-import Generics.Simplistic.Util
+import           Generics.Simplistic.Deep
+import           Generics.Simplistic.Util
 
-import qualified Data.HDiff.Base         as D
-import qualified Data.HDiff.Apply        as D
-import qualified Data.HDiff.Diff         as D
-import qualified Data.HDiff.Merge        as D
-import qualified Data.HDiff.Diff.Align  as D
+import qualified Data.HDiff.Apply         as D
+import qualified Data.HDiff.Base          as D
+import qualified Data.HDiff.Diff          as D
+import qualified Data.HDiff.Diff.Align    as D
+import qualified Data.HDiff.Merge         as D
 
-import           Languages.Interface
 import           HDiff.Options
+import           Languages.Interface
 
 time :: (NFData a) => IO a -> IO (Double, a)
 time act = do
@@ -59,9 +61,9 @@ main = Exc.catch mainBody handler
 mainBody :: IO ()
 mainBody = execParser hdiffOpts >>= \(verb , pars, opts)
     -> case optionMode opts of
-         OptAST     -> mainAST     verb pars opts
-         OptDiff    -> mainDiff    verb pars opts
-         OptMerge   -> mainMerge   verb pars opts
+         OptAST   -> mainAST     verb pars opts
+         OptDiff  -> mainDiff    verb pars opts
+         OptMerge -> mainMerge   verb pars opts
     >>= exitWith
 
 putStrLnErr :: String -> IO ()
