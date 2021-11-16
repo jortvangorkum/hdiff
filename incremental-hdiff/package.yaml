@@ -21,6 +21,11 @@ description: Please see the README on GitHub at <https://github.com/jortvangorku
 dependencies:
   - base >= 4.7 && < 5
   - hdiff
+  - parsec
+  - simplistic-generics
+  - mtl
+  - optparse-applicative
+  - deepseq
 
 library:
   source-dirs: src
@@ -35,10 +40,6 @@ executables:
       - -with-rtsopts=-N
     dependencies:
       - incremental-hdiff
-      - parsec
-      - simplistic-generics
-      - mtl
-      - optparse-applicative
 
 tests:
   incremental-hdiff-test:
@@ -49,4 +50,6 @@ tests:
       - -rtsopts
       - -with-rtsopts=-N
     dependencies:
+      - QuickCheck
+      - hspec
       - incremental-hdiff
