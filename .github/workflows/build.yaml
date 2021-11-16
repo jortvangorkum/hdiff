@@ -38,13 +38,13 @@ jobs:
             hdiff/.stack-work
             incremental-hdiff/.stack-work
           key: ${{ runner.os }}-stack-1-${{ hashFiles('hdiff/stack.yaml.lock', 'hdiff/package.yaml', 'incremental-hdiff/stack.yaml.lock', 'incremental-hdiff/package.yaml') }}
-      - name: Stack build and test HDiff
-        run: |
-          cd hdiff
-          stack build
-          stack test
       - name: Stack build and test Incremental HDiff
         run: |
           cd incremental-hdiff
+          stack build
+          stack test
+      - name: Stack build and test HDiff
+        run: |
+          cd hdiff
           stack build
           stack test

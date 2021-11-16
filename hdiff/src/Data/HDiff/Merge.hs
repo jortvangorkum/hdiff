@@ -26,7 +26,8 @@ import           Generics.Simplistic
 import           Generics.Simplistic.Deep
 import           Generics.Simplistic.Unify
 import           Generics.Simplistic.Util
-import           Generics.Simplistic.Zipper
+import           Generics.Simplistic.Zipper                (Zipper (Zipper),
+                                                            zipperRepZip)
 ----------------------------------------
 import           Data.HDiff.Base
 import           Data.HDiff.Diff.Align

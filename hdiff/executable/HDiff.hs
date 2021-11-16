@@ -74,7 +74,7 @@ putStrLnErr = hPutStrLn stderr
 mainAST :: Verbosity -> Maybe String -> Options -> IO ExitCode
 mainAST v sel opts = withParsed1 sel mainParsers (optFileA opts)
   $ \_ fa -> do
-    unless (v == Quiet) $ putStrLn (show fa)
+    unless (v == Quiet) $ print fa
     return ExitSuccess
 
 -- |Applies a patch to an element and either checks it is equal to
