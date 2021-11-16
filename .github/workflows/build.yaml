@@ -41,13 +41,12 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-stack
       - name: Stack build and test HDiff
-        working-directory: hdiff
         run: |
+          cd hdiff
           stack build
           stack test
       - name: Stack build and test Incremental HDiff
-        working-directory: incremental-hdiff
         run: |
-          ls
+          cd incremental-hdiff
           stack build
           stack test
