@@ -41,7 +41,7 @@ packages:
 #
 # extra-deps: []
 extra-deps:
-  - ../hdiff/
+  - ../hdiff
   - simplistic-generics-2.0.0
   - language-lua-0.11.0.1
   - alex-tools-0.4
