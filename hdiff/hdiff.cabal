@@ -1,0 +1,139 @@
+cabal-version: 1.12
+
+-- This file has been generated from package.yaml by hpack version 0.33.0.
+--
+-- see: https://github.com/sol/hpack
+--
+-- hash: 2b0b2d58aa53e2e9d96b775e77765264cf335f0d37e2f18df11f0b167a960d53
+
+name:           hdiff
+version:        0.0.5
+synopsis:       Pattern-Expression-based differencing of arbitrary types.
+description:    This package provides an executable and a library to compute and manipulate pattern-expression based differences between values of arbitrary datatypes. For more detailed information check the README at our GitHub page.
+category:       Other
+homepage:       https://github.com/jortvangorkum/hdiff#readme
+bug-reports:    https://github.com/jortvangorkum/hdiff/issues
+author:         Jort van Gorkum <jortvangorkum@gmail.com> & Victor Miraldo <v.cacciarimiraldo@gmail.com>
+maintainer:     Jort van Gorkum <jortvangorkum@gmail.com>
+build-type:     Simple
+
+source-repository head
+  type: git
+  location: https://github.com/jortvangorkum/hdiff
+
+library
+  exposed-modules:
+      Data.HDiff
+      Data.HDiff.Apply
+      Data.HDiff.Base
+      Data.HDiff.Compose
+      Data.HDiff.Diff
+      Data.HDiff.Diff.Align
+      Data.HDiff.Diff.Closure
+      Data.HDiff.Diff.Modes
+      Data.HDiff.Diff.Preprocess
+      Data.HDiff.Diff.Types
+      Data.HDiff.Merge
+      Data.HDiff.MetaVar
+      Data.HDiff.Show
+      Data.WordTrie
+      Generics.Simplistic.Digest
+      Generics.Simplistic.Pretty
+  other-modules:
+      Paths_hdiff
+  hs-source-dirs:
+      src/
+  ghc-options: -O2 -Wall
+  build-depends:
+      QuickCheck
+    , base >=4.9 && <5
+    , bytestring
+    , containers
+    , cryptonite
+    , deepseq
+    , hspec
+    , memory
+    , mtl
+    , prettyprinter
+    , prettyprinter-ansi-terminal
+    , simplistic-generics
+    , template-haskell
+    , text
+  default-language: Haskell2010
+
+executable hdiff
+  main-is: HDiff.hs
+  other-modules:
+      HDiff.Options
+      Languages.Bash
+      Languages.Clojure.Interface
+      Languages.Clojure.Parser
+      Languages.Clojure.Syntax
+      Languages.Dyck
+      Languages.Interface
+      Languages.Java
+      Languages.JavaScript
+      Languages.Lines
+      Languages.Lua
+      Languages.Python
+      Languages.While
+      Paths_hdiff
+  hs-source-dirs:
+      executable
+  ghc-options: -XCPP -O2 -Woverlapping-patterns -Winaccessible-code -Wincomplete-patterns -Wincomplete-uni-patterns -Wincomplete-record-updates
+  build-depends:
+      QuickCheck
+    , base >=4.9 && <5
+    , bytestring
+    , containers
+    , cryptonite
+    , deepseq
+    , gitrev
+    , hdiff
+    , hspec
+    , language-bash
+    , language-ecmascript
+    , language-java
+    , language-lua
+    , language-python
+    , memory
+    , mtl
+    , optparse-applicative
+    , parsec
+    , prettyprinter
+    , prettyprinter-ansi-terminal
+    , simplistic-generics
+    , template-haskell
+    , text
+    , time
+  default-language: Haskell2010
+
+test-suite spec
+  type: exitcode-stdio-1.0
+  main-is: Spec.hs
+  other-modules:
+      Data.HDiff.DiffSpec
+      Data.HDiff.MergeSpec
+      Data.HDiff.PatchSpec
+      Languages.RTree
+      Languages.RTree.Diff
+      Paths_hdiff
+  hs-source-dirs:
+      tests
+  build-depends:
+      QuickCheck
+    , base >=4.9 && <5
+    , bytestring
+    , containers
+    , cryptonite
+    , deepseq
+    , hdiff
+    , hspec
+    , memory
+    , mtl
+    , prettyprinter
+    , prettyprinter-ansi-terminal
+    , simplistic-generics
+    , template-haskell
+    , text
+  default-language: Haskell2010
