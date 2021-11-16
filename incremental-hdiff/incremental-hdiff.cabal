@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: ded4447bf934061aa21447c9484fdc7cd7146820b1653357e64a7d8ff9d400d8
+-- hash: 3b2bfcf38981cd308993aa2ab3d6f66e3994484eef0ba57e240532cb748b99d3
 
 name:           incremental-hdiff
 version:        0.1.0.0
@@ -29,6 +29,7 @@ library
   exposed-modules:
       CommandLine
       Languages.Interface
+      Languages.Main
       Languages.While
       Lib
   other-modules:
@@ -68,6 +69,7 @@ test-suite incremental-hdiff-test
   main-is: Spec.hs
   other-modules:
       UnitTests.ASTSpec
+      UnitTests.DiffSpec
       Paths_incremental_hdiff
   hs-source-dirs:
       test

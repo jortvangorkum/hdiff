@@ -33,9 +33,6 @@ data VectorOf (a :: *) (n :: Nat) :: * where
   V0 :: VectorOf a 'Z
   VS :: a -> VectorOf a n -> VectorOf a ('S n)
 
-mainParsers :: [LangParser]
-mainParsers = [LangParser "while" (fmap While.dfromWhile . While.parseFile)]
-
 redirectErr :: ExceptT String IO a -> IO a
 redirectErr f = runExceptT f >>= either myerr return
   where
@@ -55,9 +52,9 @@ parserSelect :: (Monad m)
              -> [LangParser]
              -> VectorOf FilePath ('S n)
              -> ExceptT String m LangParser
-parserSelect sel ps xs = maybe (throwError "No available parser") return
+parserSelect ext ps xs = maybe (throwError "No available parser") return
                        $ ((`getParserForExt` ps) =<<)
-                       $ sel <|> getSuffix (vHead xs)
+                       $ ext <|> getSuffix (vHead xs)
   where
     vHead :: VectorOf a ('S n) -> a
     vHead (VS a _) = a
@@ -69,7 +66,7 @@ vecMapM :: (Monad m) => (a -> m b) -> VectorOf a n -> m (VectorOf b n)
 vecMapM _ V0        = return V0
 vecMapM f (VS x xs) = VS <$> f x <*> vecMapM f xs
 
--- |Given a language parser and a vector of files, attempts
+-- | Given a language parser and a vector of files, attempts
 -- to parse these files; if all parses succeed we run the given
 -- continuation. If one parser fails the error is returned within
 -- the except monad.
@@ -94,8 +91,8 @@ withParsedElSel :: Maybe String
                    -> VectorOf (SFix kappa fam ix) ('S n)
                    -> IO res)
                 -> ExceptT String IO res
-withParsedElSel sel parsers fs f = do
-  p <- parserSelect sel parsers fs
+withParsedElSel ext parsers fs f = do
+  p <- parserSelect ext parsers fs
   withParsedEl p fs f
 
 withParsed1 :: Maybe String
@@ -110,3 +107,17 @@ withParsed1 :: Maybe String
 withParsed1 ext parsers file f = redirectErr
                                $ withParsedElSel ext parsers (VS file V0)
                                $ \p (VS x V0) -> f p x
+
+withParsed2 :: Maybe String
+            -> [LangParser]
+            -> FilePath -> FilePath
+            -> (forall kappa fam ix
+                 . (LangCnstr kappa fam ix)
+                => (FilePath -> IO (SFix kappa fam ix))
+                -> SFix kappa fam ix
+                -> SFix kappa fam ix
+                -> IO res)
+            -> IO res
+withParsed2 sel parsers fa fb f = redirectErr
+                                $ withParsedElSel sel parsers (VS fa (VS fb V0))
+                                $ \p (VS x (VS y V0)) -> f p x y
