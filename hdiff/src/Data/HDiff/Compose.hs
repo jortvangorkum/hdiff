@@ -11,10 +11,10 @@ module Data.HDiff.Compose where
 -------------------------------
 
 -------------------------------
-import Data.HDiff.Base
-import Data.HDiff.Diff.Closure
-import Generics.Simplistic.Unify
-import Generics.Simplistic.Util
+import           Data.HDiff.Base
+import           Data.HDiff.Diff.Closure
+import           Generics.Simplistic.Unify
+import           Generics.Simplistic.Util
 
 -- | Change composition. Running @q `chgAfter` p@ will yield a change,
 --  when possible, that changes elements in the domain

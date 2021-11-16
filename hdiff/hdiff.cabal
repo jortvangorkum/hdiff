@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 2b0b2d58aa53e2e9d96b775e77765264cf335f0d37e2f18df11f0b167a960d53
+-- hash: 0aefc6220368375b9997312a2824667d151bf5f9b95fd1dc75c81fa8d496f91e
 
 name:           hdiff
 version:        0.0.5
@@ -15,6 +15,8 @@ homepage:       https://github.com/jortvangorkum/hdiff#readme
 bug-reports:    https://github.com/jortvangorkum/hdiff/issues
 author:         Jort van Gorkum <jortvangorkum@gmail.com> & Victor Miraldo <v.cacciarimiraldo@gmail.com>
 maintainer:     Jort van Gorkum <jortvangorkum@gmail.com>
+license:        MIT
+license-file:   LICENSE
 build-type:     Simple
 
 source-repository head

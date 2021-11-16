@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 712c9b4f247d53141286c524549289082c39e88deb5b5d2b868e85aceb171b48
+-- hash: 7b362352120dee6c823d7608a775b3ba73f772a3ea5f0c8be5a416a16fc63715
 
 name:           incremental-hdiff
 version:        0.1.0.0
@@ -14,7 +14,7 @@ bug-reports:    https://github.com/githubuser/incremental-hdiff/issues
 author:         Jort van Gorkum <jortvangorkum@gmail.com>
 maintainer:     Jort van Gorkum <jortvangorkum@gmail.com>
 copyright:      2021 Jort van Gorkum
-license:        BSD3
+license:        MIT
 license-file:   LICENSE
 build-type:     Simple
 extra-source-files:

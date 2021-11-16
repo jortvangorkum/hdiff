@@ -15,11 +15,11 @@
 {-# LANGUAGE TypeSynonymInstances  #-}
 module Languages.RTree where
 
-import GHC.Generics
-import Generics.Simplistic.Deep
+import           GHC.Generics
+import           Generics.Simplistic.Deep
 
-import Control.Monad
-import Test.QuickCheck
+import           Control.Monad
+import           Test.QuickCheck
 
 data RTree = String :>: [RTree]
   deriving (Eq , Show)
