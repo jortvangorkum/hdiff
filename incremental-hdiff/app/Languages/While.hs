@@ -135,15 +135,15 @@ statement = statement'
         <|> parseBraces sequenceOfStmt
 
 sequenceOfStmt =
-  do list <- (many1 statement')
+  do list <- many1 statement'
      -- If there's only one statement return it without using Seq.
      return $ if length list == 1 then head list else Seq list
 
 statement' :: Parser Stmt
 statement' =   ifStmt
            <|> whileStmt
-           <|> (skipStmt   <* parseSemi)
-           <|> (assignStmt <* parseSemi)
+           <|> skipStmt   <* parseSemi
+           <|> assignStmt <* parseSemi
 
 ifStmt :: Parser Stmt
 ifStmt =
@@ -152,23 +152,20 @@ ifStmt =
      reserved "then"
      stmt1 <- statement
      reserved "else"
-     stmt2 <- statement
-     return $ If cond stmt1 stmt2
+     If cond stmt1 <$> statement
 
 whileStmt :: Parser Stmt
 whileStmt =
   do reserved "while"
      cond <- bExpression
      reserved "do"
-     stmt <- statement
-     return $ While cond stmt
+     While cond <$> statement
 
 assignStmt :: Parser Stmt
 assignStmt =
   do var  <- identifier
      reservedOp ":="
-     expr <- aExpression
-     return $ Assign var expr
+     Assign var <$> aExpression
 
 skipStmt :: Parser Stmt
 skipStmt = reserved "skip" >> return Skip
@@ -179,7 +176,7 @@ aExpression = buildExpressionParser aOperators aTerm
 bExpression :: Parser BExpr
 bExpression = buildExpressionParser bOperators bTerm
 
-aOperators = [ [Prefix (reservedOp "-"   >> return (Neg             ))          ]
+aOperators = [ [Prefix (reservedOp "-"   >> return Neg)          ]
              , [Infix  (reservedOp "^"   >> return (ABinary Power   )) AssocLeft]
              , [Infix  (reservedOp "*"   >> return (ABinary Multiply)) AssocLeft,
                 Infix  (reservedOp "/"   >> return (ABinary Divide  )) AssocLeft,
@@ -188,14 +185,14 @@ aOperators = [ [Prefix (reservedOp "-"   >> return (Neg             ))          
                 Infix  (reservedOp "-"   >> return (ABinary Subtract)) AssocLeft]
              ]
 
-bOperators = [ [Prefix (reservedOp "not" >> return (Not             ))          ]
+bOperators = [ [Prefix (reservedOp "not" >> return Not)          ]
              , [Infix  (reservedOp "and" >> return (BBinary And     )) AssocLeft,
                 Infix  (reservedOp "or"  >> return (BBinary Or      )) AssocLeft]
              ]
 
 aTerm =  parseParens aExpression
-     <|> liftM Var identifier
-     <|> liftM IntConst integer
+     <|> fmap Var identifier
+     <|> fmap IntConst integer
      <|> (reserved "range" >> liftM2 ARange aExpression aExpression)
 
 bTerm =  parseParens bExpression
@@ -206,8 +203,7 @@ bTerm =  parseParens bExpression
 rExpression =
   do a1 <- aExpression
      op <- relation
-     a2 <- aExpression
-     return $ RBinary op a1 a2
+     RBinary op a1 <$> aExpression
 
 relation =   (reservedOp ">" >> return Greater)
          <|> (reservedOp "<" >> return Less)
