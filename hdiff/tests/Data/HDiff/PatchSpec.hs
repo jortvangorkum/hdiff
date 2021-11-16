@@ -6,17 +6,17 @@ module Data.HDiff.PatchSpec
   ( spec
   ) where
 
-import Data.HDiff.Base
-import Data.HDiff.Compose
-import Data.HDiff.Diff
-import Data.HDiff.MetaVar
-import Languages.RTree
-import Languages.RTree.Diff
+import           Data.HDiff.Base
+import           Data.HDiff.Compose
+import           Data.HDiff.Diff
+import           Data.HDiff.MetaVar
+import           Languages.RTree
+import           Languages.RTree.Diff
 
-import Generics.Simplistic.Deep
+import           Generics.Simplistic.Deep
 
-import Test.Hspec               hiding (after)
-import Test.QuickCheck
+import           Test.Hspec               hiding (after)
+import           Test.QuickCheck
 
 ----------------------------------------------
 

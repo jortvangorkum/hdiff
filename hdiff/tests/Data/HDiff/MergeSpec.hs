@@ -10,13 +10,13 @@ module Data.HDiff.MergeSpec
   ( spec
   ) where
 
-import Data.HDiff.Diff
-import Data.HDiff.Merge
-import Languages.RTree
-import Languages.RTree.Diff
+import           Data.HDiff.Diff
+import           Data.HDiff.Merge
+import           Languages.RTree
+import           Languages.RTree.Diff
 
-import Test.Hspec
-import Test.QuickCheck
+import           Test.Hspec
+import           Test.QuickCheck
 
 --------------------------------------------
 -- ** Manual Merge Examples

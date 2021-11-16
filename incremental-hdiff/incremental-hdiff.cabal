@@ -1,0 +1,65 @@
+cabal-version: 1.12
+
+-- This file has been generated from package.yaml by hpack version 0.33.0.
+--
+-- see: https://github.com/sol/hpack
+--
+-- hash: 7b362352120dee6c823d7608a775b3ba73f772a3ea5f0c8be5a416a16fc63715
+
+name:           incremental-hdiff
+version:        0.1.0.0
+description:    Please see the README on GitHub at <https://github.com/jortvangorkum/hdiff#readme>
+homepage:       https://github.com/githubuser/incremental-hdiff#readme
+bug-reports:    https://github.com/githubuser/incremental-hdiff/issues
+author:         Jort van Gorkum <jortvangorkum@gmail.com>
+maintainer:     Jort van Gorkum <jortvangorkum@gmail.com>
+copyright:      2021 Jort van Gorkum
+license:        MIT
+license-file:   LICENSE
+build-type:     Simple
+extra-source-files:
+    README.md
+    ChangeLog.md
+
+source-repository head
+  type: git
+  location: https://github.com/githubuser/incremental-hdiff
+
+library
+  exposed-modules:
+      Lib
+  other-modules:
+      Paths_incremental_hdiff
+  hs-source-dirs:
+      src
+  build-depends:
+      base >=4.7 && <5
+    , hdiff
+  default-language: Haskell2010
+
+executable incremental-hdiff-exe
+  main-is: Main.hs
+  other-modules:
+      Paths_incremental_hdiff
+  hs-source-dirs:
+      app
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      base >=4.7 && <5
+    , hdiff
+    , incremental-hdiff
+  default-language: Haskell2010
+
+test-suite incremental-hdiff-test
+  type: exitcode-stdio-1.0
+  main-is: Spec.hs
+  other-modules:
+      Paths_incremental_hdiff
+  hs-source-dirs:
+      test
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      base >=4.7 && <5
+    , hdiff
+    , incremental-hdiff
+  default-language: Haskell2010
