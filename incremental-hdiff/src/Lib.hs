@@ -2,7 +2,7 @@ module Lib
   ( someFunc
   ) where
 
-import           Data.HDiff.Apply
+import qualified Data.HDiff.Apply as Apply
 
 someFunc :: IO ()
 someFunc = putStrLn "someFunc"

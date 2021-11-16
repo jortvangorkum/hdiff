@@ -40,6 +40,11 @@ jobs:
           key: ${{ runner.os }}-stack-${{ hashFiles('hdiff/stack.yaml.lock', 'hdiff/package.yaml', 'incremental-hdiff/stack.yaml.lock', 'incremental-hdiff/package.yaml') }}
           restore-keys: |
             ${{ runner.os }}-stack
+      - name: Stack build and test HDiff
+        working-directory: ./hdiff
+        run: |
+          stack build
+          stack test
       - name: Stack build and test Incremental HDiff
         working-directory: ./incremental-hdiff
         run: |
