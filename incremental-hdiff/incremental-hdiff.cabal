@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 7b362352120dee6c823d7608a775b3ba73f772a3ea5f0c8be5a416a16fc63715
+-- hash: 697acc2369be00e5c359019d33bed75b5b1efc91c7e304331f34896a87f3e4bb
 
 name:           incremental-hdiff
 version:        0.1.0.0
@@ -40,6 +40,7 @@ library
 executable incremental-hdiff-exe
   main-is: Main.hs
   other-modules:
+      Languages.While
       Paths_incremental_hdiff
   hs-source-dirs:
       app
@@ -48,6 +49,10 @@ executable incremental-hdiff-exe
       base >=4.7 && <5
     , hdiff
     , incremental-hdiff
+    , mtl
+    , optparse-applicative
+    , parsec
+    , simplistic-generics
   default-language: Haskell2010
 
 test-suite incremental-hdiff-test

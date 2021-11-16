@@ -35,6 +35,10 @@ executables:
       - -with-rtsopts=-N
     dependencies:
       - incremental-hdiff
+      - parsec
+      - simplistic-generics
+      - mtl
+      - optparse-applicative
 
 tests:
   incremental-hdiff-test:
