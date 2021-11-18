@@ -14,7 +14,6 @@ import           Data.HDiff.Show                           (metavarPretty,
                                                             myRender)
 import           Data.Text.Prettyprint.Doc
 import           Data.Text.Prettyprint.Doc.Render.Terminal
-import           Data.Text.Prettyprint.Doc.Render.Terminal (AnsiStyle)
 import           GHC.Generics                              (Generic (Rep), V1)
 import           Generics.Simplistic
 import           Generics.Simplistic.Deep
