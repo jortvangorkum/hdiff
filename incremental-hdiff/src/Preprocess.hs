@@ -9,9 +9,7 @@
 module Preprocess where
 import           Data.Functor.Const                        (Const (..))
 import           Data.Proxy                                (Proxy (..))
-
-import           Data.HDiff.Show                           (metavarPretty,
-                                                            myRender)
+import qualified Data.Text                                 as T
 import           Data.Text.Prettyprint.Doc
 import           Data.Text.Prettyprint.Doc.Render.Terminal
 import           GHC.Generics                              (Generic (Rep), V1)
@@ -35,6 +33,13 @@ data PrepData a = PrepData
 type PrepFix a kappa fam
   = SFixAnn kappa fam (Const (PrepData a))
 
+myRender :: Doc AnsiStyle -> String
+myRender =
+  let maxWidth = 80
+      pgdim = LayoutOptions (AvailablePerLine maxWidth 1)
+      layout = layoutSmart pgdim
+   in T.unpack . renderStrict . layout
+
 repPretty :: (forall x . phi x -> Doc ann)
           -> SRep phi f -> Doc ann
 repPretty f x =
@@ -55,7 +60,6 @@ annPretty (Const (PrepData treeDigest treeHeight treeParm)) = annotate style nod
     height = pretty $ show treeHeight
     hash = pretty $ take 5 (show (getDigest treeDigest))
     style = color Yellow <> bold
-
 
 prepFixPretty :: forall kappa fam phi h ann a ix
    . (All Show kappa)
