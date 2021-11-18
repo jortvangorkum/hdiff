@@ -27,6 +27,8 @@ dependencies:
   - optparse-applicative
   - deepseq
   - containers
+  - prettyprinter
+  - prettyprinter-ansi-terminal
 
 library:
   source-dirs: src

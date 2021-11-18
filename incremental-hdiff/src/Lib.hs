@@ -1,6 +1,9 @@
 module Lib where
 
 import           CommandLine           (Options (..))
+import           Data.HDiff            (patchApply)
+import qualified Data.HDiff            as D
+import qualified Data.HDiff.Diff.Align as D
 import           Data.HDiff.Diff.Types (DiffOptions (doMinHeight),
                                         diffOptionsDefault)
 import           Data.HDiff.Show
@@ -22,8 +25,6 @@ mainAST ext opts = withParsed1 ext mainParsers (optFileA opts)
 mainDiff :: Maybe String -> Options -> IO ExitCode
 mainDiff ext opts = withParsed2 ext mainParsers (optFileA opts) (optFileB opts)
   $ \_ fa fb -> do
-    print ext
-
     let decFa = decorate fa
     print decFa
 

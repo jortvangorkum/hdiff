@@ -4,17 +4,22 @@
 {-# LANGUAGE PolyKinds            #-}
 {-# LANGUAGE RankNTypes           #-}
 {-# LANGUAGE ScopedTypeVariables  #-}
-{-# LANGUAGE TypeSynonymInstances #-}
+
 {-# LANGUAGE UndecidableInstances #-}
 module Preprocess where
-import           Data.Functor.Const         (Const (..))
-import           Data.Proxy                 (Proxy (..))
+import           Data.Functor.Const                        (Const (..))
+import           Data.Proxy                                (Proxy (..))
 
-import           GHC.Generics               (Generic (Rep), V1)
-import           Generics.Simplistic        (SRep (..))
+import           Data.HDiff.Show                           (metavarPretty,
+                                                            myRender)
+import           Data.Text.Prettyprint.Doc
+import           Data.Text.Prettyprint.Doc.Render.Terminal
+import           Data.Text.Prettyprint.Doc.Render.Terminal (AnsiStyle)
+import           GHC.Generics                              (Generic (Rep), V1)
+import           Generics.Simplistic
 import           Generics.Simplistic.Deep
 import           Generics.Simplistic.Digest
-import qualified Generics.Simplistic.Pretty as D
+import qualified Generics.Simplistic.Pretty                as D
 import           Generics.Simplistic.Util
 
 -- |We precompute the digest of a tree and its height
@@ -31,13 +36,38 @@ data PrepData a = PrepData
 type PrepFix a kappa fam
   = SFixAnn kappa fam (Const (PrepData a))
 
--- TODO: Update show to view treedigest and treeheight
+repPretty :: (forall x . phi x -> Doc ann)
+          -> SRep phi f -> Doc ann
+repPretty f x =
+  group $ parens
+        $ nest 1
+        $ sep
+        $ (pretty c:)
+        $ map (exElim f) xs
+  where
+    c = repConstructorName x
+    xs = repLeavesList x
+    isParens = if null xs then id else parens
+
+annPretty :: Const (PrepData x) ix -> Doc AnsiStyle
+annPretty (Const (PrepData treeDigest treeHeight treeParm)) = annotate style node
+  where
+    node = list [hash, height]
+    height = pretty $ show treeHeight
+    hash = pretty $ take 5 (show (getDigest treeDigest))
+    style = color Yellow <> bold
+
+
+prepFixPretty :: forall kappa fam phi h ann a ix
+   . (All Show kappa)
+  => PrepFix a kappa fam ix
+  -> Doc AnsiStyle
+prepFixPretty (Hole' ann x) = pretty $ show x
+prepFixPretty (Prim' ann x) = pretty $ wshow (Proxy :: Proxy kappa) x
+prepFixPretty (Roll' ann x) = annPretty ann <+> repPretty prepFixPretty x
+
 instance (Show a, All Show kappa) => Show (PrepFix a kappa fam ix) where
-  show = show . D.sfixAnnPretty (const id)
-
-
-
-
+  show = myRender . prepFixPretty
 
 maxAlg :: forall phi f
         . (forall a . phi a -> Int)
