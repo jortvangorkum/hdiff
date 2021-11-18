@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 3b2bfcf38981cd308993aa2ab3d6f66e3994484eef0ba57e240532cb748b99d3
+-- hash: 8e36cb7ffa7ca554b01a9407728fdd52f5da9aec954e44848a8be95d758a25b4
 
 name:           incremental-hdiff
 version:        0.1.0.0
@@ -30,19 +30,23 @@ library
       CommandLine
       Languages.Interface
       Languages.Main
-      Languages.While
+      Languages.While.Parse
       Lib
+      Preprocess
   other-modules:
       Paths_incremental_hdiff
   hs-source-dirs:
       src
   build-depends:
       base >=4.7 && <5
+    , containers
     , deepseq
     , hdiff
     , mtl
     , optparse-applicative
     , parsec
+    , prettyprinter
+    , prettyprinter-ansi-terminal
     , simplistic-generics
   default-language: Haskell2010
 
@@ -55,12 +59,15 @@ executable incremental-hdiff-exe
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       base >=4.7 && <5
+    , containers
     , deepseq
     , hdiff
     , incremental-hdiff
     , mtl
     , optparse-applicative
     , parsec
+    , prettyprinter
+    , prettyprinter-ansi-terminal
     , simplistic-generics
   default-language: Haskell2010
 
@@ -77,6 +84,7 @@ test-suite incremental-hdiff-test
   build-depends:
       QuickCheck
     , base >=4.7 && <5
+    , containers
     , deepseq
     , hdiff
     , hspec
@@ -84,5 +92,7 @@ test-suite incremental-hdiff-test
     , mtl
     , optparse-applicative
     , parsec
+    , prettyprinter
+    , prettyprinter-ansi-terminal
     , simplistic-generics
   default-language: Haskell2010

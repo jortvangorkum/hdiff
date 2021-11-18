@@ -12,7 +12,7 @@
 {-# LANGUAGE TypeApplications      #-}
 {-# OPTIONS_GHC -Wno-missing-signatures                 #-}
 {-# OPTIONS_GHC -Wno-missing-pattern-synonym-signatures #-}
-module Languages.While
+module Languages.While.Parse
   where
 
 import           Text.ParserCombinators.Parsec
@@ -64,7 +64,7 @@ data Stmt = Seq [Stmt]
 
 type WhilePrims = '[ Integer , Bool , String ]
 
-type WhileFam = '[Stmt , [Stmt] , AExpr , BExpr , ABinOp , RBinOp , BBinOp ]
+type WhileFam = '[ Stmt , [Stmt] , AExpr , BExpr , ABinOp , RBinOp , BBinOp ]
 
 deriving instance Generic Stmt
 deriving instance Generic AExpr
@@ -74,14 +74,6 @@ deriving instance Generic BBinOp
 deriving instance Generic RBinOp
 
 deriveDeepFor ''WhilePrims ''WhileFam
-
--- instance Deep WhilePrims WhileFam Stmt
--- instance Deep WhilePrims WhileFam [Stmt]
--- instance Deep WhilePrims WhileFam AExpr
--- instance Deep WhilePrims WhileFam BExpr
--- instance Deep WhilePrims WhileFam ABinOp
--- instance Deep WhilePrims WhileFam BBinOp
--- instance Deep WhilePrims WhileFam RBinOp
 
 dfromWhile :: Stmt -> SFix WhilePrims WhileFam Stmt
 dfromWhile = dfrom

@@ -15,7 +15,7 @@ import           Generics.Simplistic.Digest
 import           Generics.Simplistic.Util
 
 import           Control.Applicative        ((<|>))
-import qualified Languages.While            as While
+import qualified Languages.While.Parse      as While
 import           System.Exit
 import           System.IO
 
