@@ -73,7 +73,7 @@ prepFixPretty :: forall kappa fam phi h ann a ix
    . (All Show kappa, Show a)
   => PrepFix a kappa fam ix
   -> Doc AnsiStyle
-prepFixPretty (Hole' ann x) = annPretty "hole" ann <+> pretty (show x)
+prepFixPretty (Hole' ann x) = annPretty "hole" ann <+> annotate (color Green) (pretty "[]")
 prepFixPretty (Prim' ann x) = annPretty "prim" ann <+> pretty (wshow (Proxy :: Proxy kappa) x)
 prepFixPretty (Roll' ann x) = annPretty "roll" ann <+> repPretty prepFixPretty x
 
