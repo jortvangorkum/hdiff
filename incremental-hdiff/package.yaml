@@ -29,6 +29,7 @@ dependencies:
   - containers
   - prettyprinter
   - prettyprinter-ansi-terminal
+  - text
 
 library:
   source-dirs: src

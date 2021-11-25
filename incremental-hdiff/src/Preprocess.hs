@@ -9,9 +9,7 @@
 module Preprocess where
 import           Data.Functor.Const                        (Const (..))
 import           Data.Proxy                                (Proxy (..))
-
-import           Data.HDiff.Show                           (metavarPretty,
-                                                            myRender)
+import qualified Data.Text                                 as T
 import           Data.Text.Prettyprint.Doc
 import           Data.Text.Prettyprint.Doc.Render.Terminal
 import           GHC.Generics                              (Generic (Rep), V1)
@@ -35,6 +33,16 @@ data PrepData a = PrepData
 type PrepFix a kappa fam
   = SFixAnn kappa fam (Const (PrepData a))
 
+-- PrepFix a kapp a fam ix = SFixAnn kappa fam (Const (PrepData a)) ix
+    -- = HolesAnn kappa fam ann V1 ix
+
+myRender :: Doc AnsiStyle -> String
+myRender =
+  let maxWidth = 80
+      pgdim = LayoutOptions (AvailablePerLine maxWidth 1)
+      layout = layoutSmart pgdim
+   in T.unpack . renderStrict . layout
+
 repPretty :: (forall x . phi x -> Doc ann)
           -> SRep phi f -> Doc ann
 repPretty f x =
@@ -48,22 +56,26 @@ repPretty f x =
     xs = repLeavesList x
     isParens = if null xs then id else parens
 
-annPretty :: Const (PrepData x) ix -> Doc AnsiStyle
-annPretty (Const (PrepData treeDigest treeHeight treeParm)) = annotate style node
+annPretty :: Show x => String -> Const (PrepData x) ix -> Doc AnsiStyle
+annPretty t (Const (PrepData treeDigest treeHeight treeParm)) = annotate (style <> bold) node
   where
-    node = list [hash, height]
+    node = list [hash, height, parm]
     height = pretty $ show treeHeight
     hash = pretty $ take 5 (show (getDigest treeDigest))
-    style = color Yellow <> bold
-
+    parm = pretty $ show treeParm
+    style = case t of
+      "hole" -> color Red
+      "prim" -> color Blue
+      "roll" -> color Yellow
+      _      -> color White
 
 prepFixPretty :: forall kappa fam phi h ann a ix
-   . (All Show kappa)
+   . (All Show kappa, Show a)
   => PrepFix a kappa fam ix
   -> Doc AnsiStyle
-prepFixPretty (Hole' ann x) = pretty $ show x
-prepFixPretty (Prim' ann x) = pretty $ wshow (Proxy :: Proxy kappa) x
-prepFixPretty (Roll' ann x) = annPretty ann <+> repPretty prepFixPretty x
+prepFixPretty (Hole' ann x) = annPretty "hole" ann <+> annotate (color Green) (pretty "[]")
+prepFixPretty (Prim' ann x) = annPretty "prim" ann <+> pretty (wshow (Proxy :: Proxy kappa) x)
+prepFixPretty (Roll' ann x) = annPretty "roll" ann <+> repPretty prepFixPretty x
 
 instance (Show a, All Show kappa) => Show (PrepFix a kappa fam ix) where
   show = myRender . prepFixPretty
