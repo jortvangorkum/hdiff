@@ -12,6 +12,7 @@ import           Data.Proxy                                (Proxy (..))
 import qualified Data.Text                                 as T
 import           Data.Text.Prettyprint.Doc
 import           Data.Text.Prettyprint.Doc.Render.Terminal
+import           Data.Word                                 (Word64)
 import           GHC.Generics                              (Generic (Rep), V1)
 import           Generics.Simplistic
 import           Generics.Simplistic.Deep
@@ -114,3 +115,12 @@ decorate = synthesize (const onRec) (const onPrim) (const botElim)
     onRec sr = let dig = authAlg (treeDigest . getConst) sr
                    h   = 1 + maxAlg (treeHeight . getConst) sr
                 in Const $ PrepData dig h ()
+
+getW64s :: Const (PrepData a) ix -> [Word64]
+getW64s (Const (PrepData treeDigest _ _)) = toW64s treeDigest
+
+getHash :: Const (PrepData a) ix -> String
+getHash (Const (PrepData treeDigest _ _)) = show $ getDigest treeDigest
+
+getHeight :: Const (PrepData a) ix -> Int
+getHeight (Const (PrepData _ treeHeight _)) = treeHeight

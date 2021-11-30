@@ -19,14 +19,16 @@ import           Generics.Simplistic        (Generic (Rep), SRep, V1 (..),
 import           Generics.Simplistic.Deep   (CompoundCnstr,
                                              HolesAnn (Hole', Prim', Roll'),
                                              PrimCnstr, SFixAnn, cataM)
-import           Generics.Simplistic.Digest (Digest (getDigest))
+import           Generics.Simplistic.Digest (Digest (getDigest), toW64s)
 import qualified Generics.Simplistic.Digest as D
 import           Generics.Simplistic.Util   (All, Exists (Exists), exElim)
 import           Languages.Interface
 import           Languages.Main
 import           Options.Applicative        (execParser)
-import           Preprocess                 (PrepData (..), PrepFix, decorate)
+import           Preprocess                 (PrepData (..), PrepFix, decorate,
+                                             getHash, getHeight, getW64s)
 import           System.Exit
+import           WordTrie                   as T
 
 mainAST :: Maybe String -> Options -> IO ExitCode
 mainAST ext opts = withParsed1 ext mainParsers (optFileA opts)
@@ -90,8 +92,12 @@ testFold = cataP f g h
              then 1 + maximum (M.elems x)
              else 0
 
-getHash :: Const (PrepData a) ix -> String
-getHash (Const (PrepData treeDigest _ _)) = show $ getDigest treeDigest
+foldPrepFixToTrie :: PrepFix a kappa fam ix -> Trie Int
+foldPrepFixToTrie = cataP hole prim roll
+  where
+    hole ann x = mempty
+    prim ann x = T.insert (getHeight ann) (getW64s ann) T.empty
+    roll ann   = T.insert (getHeight ann) (getW64s ann)
 
 mainDiff :: Maybe String -> Options -> IO ExitCode
 mainDiff ext opts = withParsed2 ext mainParsers (optFileA opts) (optFileB opts)
@@ -101,6 +107,9 @@ mainDiff ext opts = withParsed2 ext mainParsers (optFileA opts) (optFileB opts)
 
     let hashMap = testFold decFa
     print hashMap
+
+    let trie = foldPrepFixToTrie decFa
+    print trie
 
     return ExitSuccess
 
