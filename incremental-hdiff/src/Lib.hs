@@ -97,7 +97,7 @@ foldPrepFixToTrie = cataP hole prim roll
   where
     hole ann x = mempty
     prim ann x = T.insert (getHeight ann) (getW64s ann) T.empty
-    roll ann x = T.insert (getHeight ann) (getW64s ann) x
+    roll ann   = T.insert (getHeight ann) (getW64s ann)
 
 mainDiff :: Maybe String -> Options -> IO ExitCode
 mainDiff ext opts = withParsed2 ext mainParsers (optFileA opts) (optFileB opts)
