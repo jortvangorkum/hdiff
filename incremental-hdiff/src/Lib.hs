@@ -11,6 +11,7 @@ import           Control.Monad.Identity     (Identity (runIdentity))
 import           Data.Functor.Const         (Const (..))
 import           Data.Functor.Identity
 import           Data.HDiff                 (diff)
+import           Data.HDiff.Diff.Align      (align)
 import qualified Data.Map                   as M
 import           Data.Maybe                 (fromJust)
 import           Data.Word                  (Word64)
@@ -114,6 +115,9 @@ mainDiff ext opts = withParsed2 ext mainParsers (optFileA opts) (optFileB opts)
 
     let patch = diff 1 fa fb
     print patch
+
+    let alPatch = align patch
+    print alPatch
 
     return ExitSuccess
 

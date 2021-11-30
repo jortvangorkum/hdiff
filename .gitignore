@@ -13,6 +13,7 @@ cabal-dev
 .cabal-sandbox/
 cabal.sandbox.config
 *.prof
+!**/profiling/*
 *.aux
 *.hp
 *.eventlog
