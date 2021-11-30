@@ -10,6 +10,7 @@ import           CommandLine                (Options (..))
 import           Control.Monad.Identity     (Identity (runIdentity))
 import           Data.Functor.Const         (Const (..))
 import           Data.Functor.Identity
+import           Data.HDiff                 (diff)
 import qualified Data.Map                   as M
 import           Data.Maybe                 (fromJust)
 import           Data.Word                  (Word64)
@@ -102,14 +103,17 @@ foldPrepFixToTrie = cataP hole prim roll
 mainDiff :: Maybe String -> Options -> IO ExitCode
 mainDiff ext opts = withParsed2 ext mainParsers (optFileA opts) (optFileB opts)
   $ \_ fa fb -> do
-    let decFa = decorate fa
-    print decFa
+    -- let decFa = decorate fa
+    -- print decFa
 
-    let hashMap = testFold decFa
-    print hashMap
+    -- let hashMap = testFold decFa
+    -- print hashMap
 
-    let trie = foldPrepFixToTrie decFa
-    print trie
+    -- let trie = foldPrepFixToTrie decFa
+    -- print trie
+
+    let patch = diff 1 fa fb
+    print patch
 
     return ExitSuccess
 
