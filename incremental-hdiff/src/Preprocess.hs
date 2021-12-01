@@ -1,13 +1,15 @@
-{-# LANGUAGE DataKinds            #-}
+{-# LANGUAGE AllowAmbiguousTypes  #-}
+{-# LANGUAGE ConstraintKinds      #-}
 {-# LANGUAGE FlexibleInstances    #-}
 {-# LANGUAGE GADTs                #-}
-{-# LANGUAGE PolyKinds            #-}
 {-# LANGUAGE RankNTypes           #-}
 {-# LANGUAGE ScopedTypeVariables  #-}
-
 {-# LANGUAGE UndecidableInstances #-}
+
 module Preprocess where
+
 import           Data.Functor.Const                        (Const (..))
+import qualified Data.Map                                  as M
 import           Data.Proxy                                (Proxy (..))
 import qualified Data.Text                                 as T
 import           Data.Text.Prettyprint.Doc
@@ -17,8 +19,10 @@ import           GHC.Generics                              (Generic (Rep), V1)
 import           Generics.Simplistic
 import           Generics.Simplistic.Deep
 import           Generics.Simplistic.Digest
+import           Generics.Simplistic.Pretty                (sfixAnnPretty)
 import qualified Generics.Simplistic.Pretty                as D
 import           Generics.Simplistic.Util
+import qualified WordTrie                                  as Tr
 
 -- |We precompute the digest of a tree and its height
 --  and annotate our fixpoints with this data before
@@ -116,6 +120,25 @@ decorate = synthesize (const onRec) (const onPrim) (const botElim)
                    h   = 1 + maxAlg (treeHeight . getConst) sr
                 in Const $ PrepData dig h ()
 
+decorateHash :: forall kappa fam at
+          . (All Digestible kappa)
+         => SFix kappa fam at
+         -> PrepFix () kappa fam at
+decorateHash = synthesize (const onRec) (const onPrim) (const botElim)
+  where
+    botElim :: V1 x -> a
+    botElim = error "botElim"
+
+    pp :: Proxy kappa
+    pp = Proxy
+
+    onPrim :: (Elem b kappa) => b -> Const (PrepData ()) b
+    onPrim b = Const $ PrepData (digPrim pp b) (-1) ()
+
+    onRec :: SRep (Const (PrepData ())) (Rep b)
+          -> Const (PrepData ()) b
+    onRec sr = Const $ PrepData (authAlg (treeDigest . getConst) sr) (-1) ()
+
 getW64s :: Const (PrepData a) ix -> [Word64]
 getW64s (Const (PrepData treeDigest _ _)) = toW64s treeDigest
 
@@ -124,3 +147,28 @@ getHash (Const (PrepData treeDigest _ _)) = show $ getDigest treeDigest
 
 getHeight :: Const (PrepData a) ix -> Int
 getHeight (Const (PrepData _ treeHeight _)) = treeHeight
+
+cataP :: Monoid m =>
+      (forall x . Const (PrepData a) x -> V1 x -> m)
+      -> (forall x . PrimCnstr kappa fam x => Const (PrepData a) x -> x -> m)
+      -> (forall x . CompoundCnstr kappa fam x => Const (PrepData a) x -> m -> m)
+      -> PrepFix a kappa fam ix -> m
+cataP f g h (Hole' ann x) = f ann x
+cataP f g h (Prim' ann x) = g ann x
+cataP f g h (Roll' ann x) = h ann x'
+  where
+    x' = repLeaves (cataP f g h) (<>) mempty x
+
+foldPrepFixToMap :: PrepFix a kappa fam ix -> M.Map String Int
+foldPrepFixToMap = cataP f g h
+  where
+    f ann x = M.empty
+    g ann x = M.insert (getHash ann) (getHeight ann) M.empty
+    h ann x = M.insert (getHash ann) (getHeight ann) x
+
+foldPrepFixToTrie :: PrepFix a kappa fam ix -> Tr.Trie Int
+foldPrepFixToTrie = cataP hole prim roll
+  where
+    hole ann x = mempty
+    prim ann x = Tr.insert (getHeight ann) (getW64s ann) Tr.empty
+    roll ann   = Tr.insert (getHeight ann) (getW64s ann)

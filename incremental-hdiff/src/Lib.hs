@@ -20,15 +20,15 @@ import           Generics.Simplistic        (Generic (Rep), SRep, V1 (..),
                                              repMapM, toS)
 import           Generics.Simplistic.Deep   (CompoundCnstr,
                                              HolesAnn (Hole', Prim', Roll'),
-                                             PrimCnstr, SFixAnn, cataM)
+                                             PrimCnstr, SFixAnn, cataM,
+                                             holesMapAnn)
 import           Generics.Simplistic.Digest (Digest (getDigest), toW64s)
 import qualified Generics.Simplistic.Digest as D
 import           Generics.Simplistic.Util   (All, Exists (Exists), exElim)
 import           Languages.Interface
 import           Languages.Main
 import           Options.Applicative        (execParser)
-import           Preprocess                 (PrepData (..), PrepFix, decorate,
-                                             getHash, getHeight, getW64s)
+import           Preprocess
 import           System.Exit
 import           WordTrie                   as T
 
@@ -38,86 +38,32 @@ mainAST ext opts = withParsed1 ext mainParsers (optFileA opts)
     print fa
     return ExitSuccess
 
-data Tree a = Leaf
-            | Node (Tree a) a (Tree a)
-
-cataT :: b
-      -> (b -> a -> b -> b)
-      -> Tree a -> b
-cataT f _ Leaf         = f
-cataT f g (Node l x r) = g (cataT f g l) x (cataT f g r)
-
-cataTM :: Monad m => m b
-       -> (m b -> a -> m b -> m b)
-       -> Tree a -> m b
-cataTM f _ Leaf         = f
-cataTM f g (Node l x r) = g (cataTM f g l) x (cataTM f g r)
-
-testTree :: Tree Int
-testTree = Node (Node Leaf 1 Leaf) 2 Leaf
-
-testFoldT :: Tree Int -> [Int]
-testFoldT = cataT leaf node
+mapPrepFix :: M.Map String Int -> PrepFix () kappa fam ix -> PrepFix () kappa fam ix
+mapPrepFix m = holesMapAnn f g
   where
-    leaf = [0]
-    node l x r = l ++ [x] ++ r
-
-testFoldTM :: Tree Int -> [Int]
-testFoldTM = runIdentity . cataTM leaf node
-  where
-    leaf = Identity [0]
-    node :: Monad m => m [Int] -> Int -> m [Int] -> m [Int]
-    node l x r = do
-      l' <- l
-      r' <- r
-      return $ l' ++ [x] ++ r'
-
-cataP :: Monoid m =>
-      (forall x . Const (PrepData a) x -> V1 x -> m)
-      -> (forall x . PrimCnstr kappa fam x => Const (PrepData a) x -> x -> m)
-      -> (forall x . CompoundCnstr kappa fam x => Const (PrepData a) x -> m -> m)
-      -> PrepFix a kappa fam ix -> m
-cataP f g h (Hole' ann x) = f ann x
-cataP f g h (Prim' ann x) = g ann x
-cataP f g h (Roll' ann x) = h ann x'
-  where
-    x' = repLeaves (cataP f g h) (<>) mempty x
-
-testFold :: PrepFix a kappa fam ix -> M.Map String Int
-testFold = cataP f g h
-  where
-    f ann x = M.empty
-    g ann x = M.insert (take 5 (getHash ann)) 0 M.empty
-    h ann x = M.insert (take 5 (getHash ann)) xs x
+    f :: (forall x. V1 x -> V1 x)
+    f = id
+    g :: (forall x. Const (PrepData ()) x -> Const (PrepData ()) x)
+    g ann = Const $ PrepData dig height ()
       where
-        xs = if not $ null (M.elems x)
-             then 1 + maximum (M.elems x)
-             else 0
+        (Const (PrepData dig hei _)) = ann
+        hash = getHash ann
+        height = fromJust $ M.lookup hash m
 
-foldPrepFixToTrie :: PrepFix a kappa fam ix -> Trie Int
-foldPrepFixToTrie = cataP hole prim roll
-  where
-    hole ann x = mempty
-    prim ann x = T.insert (getHeight ann) (getW64s ann) T.empty
-    roll ann   = T.insert (getHeight ann) (getW64s ann)
 
 mainDiff :: Maybe String -> Options -> IO ExitCode
 mainDiff ext opts = withParsed2 ext mainParsers (optFileA opts) (optFileB opts)
   $ \_ fa fb -> do
-    -- let decFa = decorate fa
-    -- print decFa
+    let decFa = decorate fa
 
-    -- let hashMap = testFold decFa
+    let hashFb = decorateHash fb
+    -- print hashFb
+
+    let hashMap = foldPrepFixToMap decFa
     -- print hashMap
 
-    -- let trie = foldPrepFixToTrie decFa
-    -- print trie
-
-    let patch = diff 1 fa fb
-    print patch
-
-    let alPatch = align patch
-    print alPatch
+    let decFb = mapPrepFix hashMap hashFb
+    -- print decFb
 
     return ExitSuccess
 
