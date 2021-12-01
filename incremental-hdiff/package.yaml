@@ -30,6 +30,8 @@ dependencies:
   - prettyprinter
   - prettyprinter-ansi-terminal
   - text
+  - tree-sitter
+  - tree-sitter-haskell
 
 library:
   source-dirs: src

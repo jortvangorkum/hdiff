@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 3113dc7cca8613ce34f7f904cd38a6a6adca3daca952bdd291e43bc9c6d2ce2e
+-- hash: 54eb598454790001be7c34c6ec0c0e942f84380cbaf782615f1732d6eef77285
 
 name:           incremental-hdiff
 version:        0.1.0.0
@@ -32,6 +32,7 @@ library
       Languages.Main
       Languages.While.Parse
       Lib
+      Parse
       Preprocess
       WordTrie
   other-modules:
@@ -50,6 +51,8 @@ library
     , prettyprinter-ansi-terminal
     , simplistic-generics
     , text
+    , tree-sitter
+    , tree-sitter-haskell
   default-language: Haskell2010
 
 executable incremental-hdiff-exe
@@ -72,6 +75,8 @@ executable incremental-hdiff-exe
     , prettyprinter-ansi-terminal
     , simplistic-generics
     , text
+    , tree-sitter
+    , tree-sitter-haskell
   default-language: Haskell2010
 
 test-suite incremental-hdiff-test
@@ -99,4 +104,6 @@ test-suite incremental-hdiff-test
     , prettyprinter-ansi-terminal
     , simplistic-generics
     , text
+    , tree-sitter
+    , tree-sitter-haskell
   default-language: Haskell2010

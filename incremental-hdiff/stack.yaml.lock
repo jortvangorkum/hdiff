@@ -5,6 +5,27 @@
 
 packages:
 - completed:
+    hackage: tree-sitter-0.9.0.2@sha256:a8e9821575a1bf90455cc164619f5a59f6cc01d66a870944ece84a755b6450d9,3314
+    pantry-tree:
+      size: 3765
+      sha256: 96bef3ea32f0993db07fe550e4eebe876dee652381cc012d7443507ab9b4c098
+  original:
+    hackage: tree-sitter-0.9.0.2
+- completed:
+    hackage: tree-sitter-haskell-0.3.0.1@sha256:1e3b651d8ab16d45c6262e5cf9c676340101be5cb0e70284bf4b6bf84b4970df,2235
+    pantry-tree:
+      size: 545
+      sha256: ca12a46ba2231b991f040b868242c509acaf49f66ccb335d6c72169340aa151d
+  original:
+    hackage: tree-sitter-haskell-0.3.0.1
+- completed:
+    hackage: containers-0.6.5.1@sha256:a029734132bb3471f8a91e3deaa095581a97410c405a1c665643053db87d87c1,2596
+    pantry-tree:
+      size: 2823
+      sha256: 86234e3221f6fa50e82d860a8428005ac3ff19fea92103ff79a3047cd5cd1625
+  original:
+    hackage: containers-0.6.5.1
+- completed:
     hackage: simplistic-generics-2.0.0@sha256:0d1867682a7b451bdb3b1e34a09614ceab065a79c733faa31393fbf33fe01809,1488
     pantry-tree:
       size: 886
@@ -40,33 +61,19 @@ packages:
   original:
     hackage: text-1.2.4.0@sha256:8c24450feb8e3bbb7ea3e17af24ef57e85db077c4bf53e5bcc345b283d1b1d5b,10081
 - completed:
-    hackage: containers-0.5.11.0@sha256:28ad7337057442f75bc689315ab4ec7bdf5e6b2c39668f306672cecd82c02798,16685
+    hackage: language-bash-0.9.2@sha256:fa7fa9f1223eb1d0587bce1b9f534775b900827601a5d2cbf9b3c9b15c64c2ed,1750
     pantry-tree:
-      size: 4849
-      sha256: faa4e75922a28f7cfe9920c1d7ab3866b792cefcd29bf79f54cfe3b6b5f57cbf
+      size: 2706
+      sha256: 42fdbbd9c5ba50a4e8a652dab2ff2dc3c5890bdb480c86201d658a5dac42309b
   original:
-    hackage: containers-0.5.11.0@sha256:28ad7337057442f75bc689315ab4ec7bdf5e6b2c39668f306672cecd82c02798,16685
+    hackage: language-bash-0.9.2
 - completed:
-    hackage: language-bash-0.8.0@sha256:2a7b0498c029f0e7c30d3b273897e32036a629ff9ffa5c92ec2f3a51f46af86f,1620
+    hackage: language-python-0.5.8@sha256:c96a6b22e57acbf04c9955a108f6332fe84affd00fd3fe994fa4c5b344238c8e,2558
     pantry-tree:
-      size: 1006
-      sha256: c39ea8b393d342ce492400f97c98a5af1edac5a345d34af84c3f9ca643553418
+      size: 1999
+      sha256: b0dca8f7dec81c60459ed8ae8d499f75db0d24f39c57dee1bfb6e6afb0d96e75
   original:
-    hackage: language-bash-0.8.0@sha256:2a7b0498c029f0e7c30d3b273897e32036a629ff9ffa5c92ec2f3a51f46af86f,1620
-- completed:
-    hackage: language-python-0.5.6@sha256:ee38764d4e65a080651081a8e762cfc5dcdc36e540fe2a1a1ee8f726cbb5240d,2515
-    pantry-tree:
-      size: 2000
-      sha256: a7f655e31e43d034c7430f532d2f734248340627c41a6998ddbef706159fd2be
-  original:
-    hackage: language-python-0.5.6@sha256:ee38764d4e65a080651081a8e762cfc5dcdc36e540fe2a1a1ee8f726cbb5240d,2515
-- completed:
-    hackage: language-rust-0.2.0.27@sha256:d96ec43076689ca8932a78b523b668de30a6b1f3b4fb6386017732028e591da7,6835
-    pantry-tree:
-      size: 2536
-      sha256: e0c12c665be3f14ff26f28d7c6c5b0e0493de2fb6ab829d3596f43e801b26719
-  original:
-    hackage: language-rust-0.2.0.27@sha256:d96ec43076689ca8932a78b523b668de30a6b1f3b4fb6386017732028e591da7,6835
+    hackage: language-python-0.5.8
 snapshots:
 - completed:
     size: 523884
