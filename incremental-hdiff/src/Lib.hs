@@ -1,32 +1,38 @@
 {-# LANGUAGE AllowAmbiguousTypes #-}
 {-# LANGUAGE ConstraintKinds     #-}
+{-# LANGUAGE ExplicitNamespaces  #-}
 {-# LANGUAGE GADTs               #-}
 {-# LANGUAGE RankNTypes          #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+
 module Lib where
 
 import           CommandLine                (Options (..))
 
 import           Control.Monad.Identity     (Identity (runIdentity))
 import           Data.Functor.Const         (Const (..))
-import           Data.Functor.Identity
-import           Data.HDiff                 (diff)
-import           Data.HDiff.Diff.Align      (align)
+import           Data.HDiff                 (DiffOptions)
+import           Data.HDiff.Base            (Chg (Chg), Patch)
+import           Data.HDiff.Diff.Closure    (close)
+import           Data.HDiff.Diff.Types      (DiffOptions (doGlobalChgs, doMinHeight, doMode),
+                                             MinHeight, diffOptionsDefault)
+import           Data.HDiff.MetaVar         (MetaVar)
 import qualified Data.Map                   as M
 import           Data.Maybe                 (fromJust)
 import           Data.Word                  (Word64)
+import           Diff
 import           Generics.Simplistic        (Generic (Rep), SRep, V1 (..),
                                              repLeaves, repLeavesList, repMap,
-                                             repMapM, toS)
-import           Generics.Simplistic.Deep   (CompoundCnstr,
-                                             HolesAnn (Hole', Prim', Roll'),
-                                             PrimCnstr, SFixAnn, cataM,
-                                             holesMapAnn)
-import           Generics.Simplistic.Digest (Digest (getDigest), toW64s)
+                                             repMapM, toS, type (:*:) ((:*:)))
+import           Generics.Simplistic.Deep
+import           Generics.Simplistic.Digest (Digest (getDigest), Digestible,
+                                             toW64s)
 import qualified Generics.Simplistic.Digest as D
-import           Generics.Simplistic.Util   (All, Exists (Exists), exElim)
+import           Generics.Simplistic.Util   (All, Delta, Exists (Exists),
+                                             exElim, (:*:))
 import           Languages.Interface
 import           Languages.Main
+import           Modes
 import           Options.Applicative        (execParser)
 import           Preprocess
 import           System.Exit
@@ -50,7 +56,6 @@ mapPrepFix m = holesMapAnn f g
         hash = getHash ann
         height = fromJust $ M.lookup hash m
 
-
 mainDiff :: Maybe String -> Options -> IO ExitCode
 mainDiff ext opts = withParsed2 ext mainParsers (optFileA opts) (optFileB opts)
   $ \_ fa fb -> do
@@ -64,6 +69,9 @@ mainDiff ext opts = withParsed2 ext mainParsers (optFileA opts) (optFileB opts)
 
     let decFb = mapPrepFix hashMap hashFb
     -- print decFb
+
+    let patch = diff 1 decFa decFb
+    print patch
 
     return ExitSuccess
 
