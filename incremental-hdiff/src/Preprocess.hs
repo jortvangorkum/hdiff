@@ -120,6 +120,8 @@ decorate = synthesize (const onRec) (const onPrim) (const botElim)
                    h   = 1 + maxAlg (treeHeight . getConst) sr
                 in Const $ PrepData dig h ()
 
+
+
 decorateHash :: forall kappa fam at
           . (All Digestible kappa)
          => SFix kappa fam at
@@ -159,12 +161,32 @@ cataP f g h (Roll' ann x) = h ann x'
   where
     x' = repLeaves (cataP f g h) (<>) mempty x
 
+cataPr :: Monoid m =>
+      (forall x . PrepFix a kappa fam x -> Const (PrepData a) x -> V1 x -> m)
+      -> (forall x . PrimCnstr kappa fam x => PrepFix a kappa fam x -> Const (PrepData a) x -> x -> m)
+      -> (forall x . CompoundCnstr kappa fam x => PrepFix a kappa fam x -> Const (PrepData a) x -> m -> m)
+      -> PrepFix a kappa fam ix -> m
+cataPr f g h ho@(Hole' ann x) = f ho ann x
+cataPr f g h p@(Prim' ann x) = g p ann x
+cataPr f g h r@(Roll' ann x) = h r ann x'
+  where
+    x' = repLeaves (cataPr f g h) (<>) mempty x
+
 foldPrepFixToMap :: PrepFix a kappa fam ix -> M.Map String Int
 foldPrepFixToMap = cataP f g h
   where
     f ann x = M.empty
     g ann x = M.insert (getHash ann) (getHeight ann) M.empty
     h ann x = M.insert (getHash ann) (getHeight ann) x
+
+-- foldPrepFixToPrepFixMap :: forall kappa fam ix .
+--                         PrepFix () kappa fam ix
+--                         -> M.Map String (PrepFix () kappa fam ix)
+-- foldPrepFixToPrepFixMap (Hole' ann x)   = M.empty
+-- foldPrepFixToPrepFixMap p@(Prim' ann x) = M.insert (getHash ann) p M.empty
+-- foldPrepFixToPrepFixMap r@(Roll' ann x) = M.insert (getHash ann) r m
+--   where
+--     m = foldLeaves foldPrepFixToPrepFixMap (<>) M.empty x
 
 foldPrepFixToTrie :: PrepFix a kappa fam ix -> Tr.Trie Int
 foldPrepFixToTrie = cataP hole prim roll
