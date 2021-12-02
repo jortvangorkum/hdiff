@@ -20,7 +20,6 @@ import           Data.HDiff.MetaVar         (MetaVar)
 import qualified Data.Map                   as M
 import           Data.Maybe                 (fromJust)
 import           Data.Word                  (Word64)
-import           Diff
 import           Generics.Simplistic        (Generic (Rep), SRep, V1 (..),
                                              repLeaves, repLeavesList, repMap,
                                              repMapM, toS, type (:*:) ((:*:)))
@@ -32,10 +31,10 @@ import           Generics.Simplistic.Util   (All, Delta, Elem, Exists (Exists),
                                              exElim, (:*:))
 import           Languages.Interface
 import           Languages.Main
-import           Modes
 import           Options.Applicative        (execParser)
 import           Preprocess
 import           System.Exit
+import           Types
 import           WordTrie                   as T
 
 mainAST :: Maybe String -> Options -> IO ExitCode
@@ -44,34 +43,7 @@ mainAST ext opts = withParsed1 ext mainParsers (optFileA opts)
     print fa
     return ExitSuccess
 
-decoratePrepFix :: forall kappa fam at .
-                   PrepFix () kappa fam at
-                -> PrepFix () kappa fam at
-decoratePrepFix = synthesize roll prim holl
-  where
-    holl = error "No Hole in Decorate"
-
-    prim :: (Elem b kappa) => Const (PrepData ()) b -> b -> Const (PrepData ()) b
-    prim (Const (PrepData dig _ _)) x = Const $ PrepData dig 0 ()
-
-    roll :: Const (PrepData ()) b
-         -> SRep (Const (PrepData ())) (Rep b)
-         -> Const (PrepData ()) b
-    roll (Const (PrepData dig _ _)) sr = Const $ PrepData dig h ()
-      where
-        h  = 1 + maxAlg (treeHeight . getConst) sr
-
-findOrBuild :: M.Map String (PrepFix () kappa fam ix)
-            -> PrepFix () kappa fam ix
-            -> PrepFix () kappa fam ix
-findOrBuild m prepFix = p'
-  where
-    mp = M.lookup ((getHash . getAnn) prepFix) m
-    p' = case mp of
-      Nothing -> decoratePrepFix prepFix
-      Just ha -> ha
-
-decoratePrepFixWithMap :: M.Map String (PrepFix () kappa fam ix) -> PrepFix () kappa fam ix -> PrepFix () kappa fam ix
+decoratePrepFixWithMap :: M.Map String DecData -> DecFix kappa fam ix -> DecFix kappa fam ix
 decoratePrepFixWithMap m p@Prim'{} = findOrBuild m p
 decoratePrepFixWithMap m r@Roll'{} = findOrBuild m r
 decoratePrepFixWithMap m x         = x
@@ -84,11 +56,11 @@ mainDiff ext opts = withParsed2 ext mainParsers (optFileA opts) (optFileB opts)
     let hashFb = decorateHash fb
     -- print hashFb
 
-    let hashMap = foldPrepFixToMap decFa
+    let hashMap = foldPrepFixToDecDataMap decFa
     -- print hashMap
 
-    -- let decFb = decoratePrepFix hashMap hashFb
-    -- print decFb
+    let decFb = decoratePrepFixWithMap hashMap hashFb
+    print decFb
 
     -- let patch = diff 1 decFa decFb
     -- print patch

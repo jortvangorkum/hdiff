@@ -22,68 +22,8 @@ import           Generics.Simplistic.Digest
 import           Generics.Simplistic.Pretty                (sfixAnnPretty)
 import qualified Generics.Simplistic.Pretty                as D
 import           Generics.Simplistic.Util
+import           Types
 import qualified WordTrie                                  as Tr
-
--- |We precompute the digest of a tree and its height
---  and annotate our fixpoints with this data before
---  going forward and computing a diff.
-data PrepData a = PrepData
-  { treeDigest :: Digest
-  , treeHeight :: Int
-  , treeParm   :: a
-  } deriving (Eq , Show)
-
--- |A 'PrepFix' is a prepared fixpoint. In our case, it is
--- just a 'HolesAnn' with the prepared data inside of it.
-type PrepFix a kappa fam
-  = SFixAnn kappa fam (Const (PrepData a))
-
--- PrepFix a kapp a fam ix = SFixAnn kappa fam (Const (PrepData a)) ix
-    -- = HolesAnn kappa fam ann V1 ix
-
-myRender :: Doc AnsiStyle -> String
-myRender =
-  let maxWidth = 80
-      pgdim = LayoutOptions (AvailablePerLine maxWidth 1)
-      layout = layoutSmart pgdim
-   in T.unpack . renderStrict . layout
-
-repPretty :: (forall x . phi x -> Doc ann)
-          -> SRep phi f -> Doc ann
-repPretty f x =
-  group $ parens
-        $ nest 1
-        $ sep
-        $ (pretty c:)
-        $ map (exElim f) xs
-  where
-    c = repConstructorName x
-    xs = repLeavesList x
-    isParens = if null xs then id else parens
-
-annPretty :: Show x => String -> Const (PrepData x) ix -> Doc AnsiStyle
-annPretty t (Const (PrepData treeDigest treeHeight treeParm)) = annotate (style <> bold) node
-  where
-    node = list [hash, height, parm]
-    height = pretty $ show treeHeight
-    hash = pretty $ take 5 (show (getDigest treeDigest))
-    parm = pretty $ show treeParm
-    style = case t of
-      "hole" -> color Red
-      "prim" -> color Blue
-      "roll" -> color Yellow
-      _      -> color White
-
-prepFixPretty :: forall kappa fam phi h ann a ix
-   . (All Show kappa, Show a)
-  => PrepFix a kappa fam ix
-  -> Doc AnsiStyle
-prepFixPretty (Hole' ann x) = annPretty "hole" ann <+> annotate (color Green) (pretty "[]")
-prepFixPretty (Prim' ann x) = annPretty "prim" ann <+> pretty (wshow (Proxy :: Proxy kappa) x)
-prepFixPretty (Roll' ann x) = annPretty "roll" ann <+> repPretty prepFixPretty x
-
-instance (Show a, All Show kappa) => Show (PrepFix a kappa fam ix) where
-  show = myRender . prepFixPretty
 
 maxAlg :: forall phi f
         . (forall a . phi a -> Int)
@@ -102,7 +42,7 @@ maxAlg f (S_K1 x)   = f x
 decorate :: forall kappa fam at
           . (All Digestible kappa)
          => SFix kappa fam at
-         -> PrepFix () kappa fam at
+         -> DecFix kappa fam at
 decorate = synthesize (const onRec) (const onPrim) (const botElim)
   where
     botElim :: V1 x -> a
@@ -111,21 +51,52 @@ decorate = synthesize (const onRec) (const onPrim) (const botElim)
     pp :: Proxy kappa
     pp = Proxy
 
-    onPrim :: (Elem b kappa) => b -> Const (PrepData ()) b
-    onPrim b = Const $ PrepData (digPrim pp b) 0 ()
+    onPrim :: (Elem b kappa) => b -> Const DecData b
+    onPrim b = Const $ DecData (digPrim pp b) 0
 
-    onRec :: SRep (Const (PrepData ())) (Rep b)
-          -> Const (PrepData ()) b
+    onRec :: SRep (Const DecData) (Rep b)
+          -> Const DecData b
     onRec sr = let dig = authAlg (treeDigest . getConst) sr
                    h   = 1 + maxAlg (treeHeight . getConst) sr
-                in Const $ PrepData dig h ()
+                in Const $ DecData dig h
 
+setAnn :: DecFix kappa fam ix -> DecData -> DecFix kappa fam ix
+setAnn (Hole' ann x) ann' = Hole' (Const ann') x
+setAnn (Prim' ann x) ann' = Prim' (Const ann') x
+setAnn (Roll' ann x) ann' = Roll' (Const ann') x
 
+findOrBuild :: M.Map String DecData
+            -> DecFix kappa fam ix
+            -> DecFix kappa fam ix
+findOrBuild m dec = p'
+  where
+    mp = M.lookup ((getHash . getAnn) dec) m
+    p' = case mp of
+      Nothing -> decorateDecData m dec
+      Just ha -> setAnn dec ha
+
+decorateDecData :: forall kappa fam at .
+                M.Map String DecData
+                -> DecFix kappa fam at
+                -> DecFix kappa fam at
+decorateDecData m = synthesize roll prim holl
+  where
+    holl = error "No Hole in Decorate"
+
+    prim :: (Elem b kappa) => Const DecData b -> b -> Const DecData b
+    prim (Const (DecData dig _)) x = Const $ DecData dig 0
+
+    roll :: Const DecData b
+         -> SRep (Const DecData) (Rep b)
+         -> Const DecData b
+    roll (Const (DecData dig _)) sr = Const $ DecData dig h
+      where
+        h  = 1 + maxAlg (treeHeight . getConst) sr
 
 decorateHash :: forall kappa fam at
           . (All Digestible kappa)
          => SFix kappa fam at
-         -> PrepFix () kappa fam at
+         -> DecFix kappa fam at
 decorateHash = synthesize (const onRec) (const onPrim) (const botElim)
   where
     botElim :: V1 x -> a
@@ -134,61 +105,48 @@ decorateHash = synthesize (const onRec) (const onPrim) (const botElim)
     pp :: Proxy kappa
     pp = Proxy
 
-    onPrim :: (Elem b kappa) => b -> Const (PrepData ()) b
-    onPrim b = Const $ PrepData (digPrim pp b) (-1) ()
+    onPrim :: (Elem b kappa) => b -> Const DecData b
+    onPrim b = Const $ DecData (digPrim pp b) (-1)
 
-    onRec :: SRep (Const (PrepData ())) (Rep b)
-          -> Const (PrepData ()) b
-    onRec sr = Const $ PrepData (authAlg (treeDigest . getConst) sr) (-1) ()
+    onRec :: SRep (Const DecData) (Rep b)
+          -> Const DecData b
+    onRec sr = Const $ DecData (authAlg (treeDigest . getConst) sr) (-1)
 
-getW64s :: Const (PrepData a) ix -> [Word64]
-getW64s (Const (PrepData treeDigest _ _)) = toW64s treeDigest
+getW64s :: Const DecData ix -> [Word64]
+getW64s (Const (DecData treeDigest _)) = toW64s treeDigest
 
-getHash :: Const (PrepData a) ix -> String
-getHash (Const (PrepData treeDigest _ _)) = show $ getDigest treeDigest
+getHash :: Const DecData ix -> String
+getHash (Const (DecData treeDigest _)) = show $ getDigest treeDigest
 
-getHeight :: Const (PrepData a) ix -> Int
-getHeight (Const (PrepData _ treeHeight _)) = treeHeight
+getHeight :: Const DecData ix -> Int
+getHeight (Const (DecData _ treeHeight)) = treeHeight
 
 cataP :: Monoid m =>
-      (forall x . Const (PrepData a) x -> V1 x -> m)
-      -> (forall x . PrimCnstr kappa fam x => Const (PrepData a) x -> x -> m)
-      -> (forall x . CompoundCnstr kappa fam x => Const (PrepData a) x -> m -> m)
-      -> PrepFix a kappa fam ix -> m
+      (forall x . Const DecData x -> V1 x -> m)
+      -> (forall x . PrimCnstr kappa fam x => Const DecData x -> x -> m)
+      -> (forall x . CompoundCnstr kappa fam x => Const DecData x -> m -> m)
+      -> DecFix kappa fam ix -> m
 cataP f g h (Hole' ann x) = f ann x
 cataP f g h (Prim' ann x) = g ann x
 cataP f g h (Roll' ann x) = h ann x'
   where
     x' = repLeaves (cataP f g h) (<>) mempty x
 
-cataPr :: Monoid m =>
-      (forall x . PrepFix a kappa fam x -> Const (PrepData a) x -> V1 x -> m)
-      -> (forall x . PrimCnstr kappa fam x => PrepFix a kappa fam x -> Const (PrepData a) x -> x -> m)
-      -> (forall x . CompoundCnstr kappa fam x => PrepFix a kappa fam x -> Const (PrepData a) x -> m -> m)
-      -> PrepFix a kappa fam ix -> m
-cataPr f g h ho@(Hole' ann x) = f ho ann x
-cataPr f g h p@(Prim' ann x) = g p ann x
-cataPr f g h r@(Roll' ann x) = h r ann x'
+foldPrepFixToDecDataMap :: DecFix kappa fam ix -> M.Map String DecData
+foldPrepFixToDecDataMap = cataP f g h
   where
-    x' = repLeaves (cataPr f g h) (<>) mempty x
+    f ann x = M.empty
+    g ann x = M.insert (getHash ann) (getConst ann) M.empty
+    h ann x = M.insert (getHash ann) (getConst ann) x
 
-foldPrepFixToMap :: PrepFix a kappa fam ix -> M.Map String Int
+foldPrepFixToMap :: DecFix kappa fam ix -> M.Map String Int
 foldPrepFixToMap = cataP f g h
   where
     f ann x = M.empty
     g ann x = M.insert (getHash ann) (getHeight ann) M.empty
     h ann x = M.insert (getHash ann) (getHeight ann) x
 
--- foldPrepFixToPrepFixMap :: forall kappa fam ix .
---                         PrepFix () kappa fam ix
---                         -> M.Map String (PrepFix () kappa fam ix)
--- foldPrepFixToPrepFixMap (Hole' ann x)   = M.empty
--- foldPrepFixToPrepFixMap p@(Prim' ann x) = M.insert (getHash ann) p M.empty
--- foldPrepFixToPrepFixMap r@(Roll' ann x) = M.insert (getHash ann) r m
---   where
---     m = foldLeaves foldPrepFixToPrepFixMap (<>) M.empty x
-
-foldPrepFixToTrie :: PrepFix a kappa fam ix -> Tr.Trie Int
+foldPrepFixToTrie :: DecFix kappa fam ix -> Tr.Trie Int
 foldPrepFixToTrie = cataP hole prim roll
   where
     hole ann x = mempty
