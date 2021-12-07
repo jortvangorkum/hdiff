@@ -1,4 +1,5 @@
 {-# LANGUAGE AllowAmbiguousTypes #-}
+{-# LANGUAGE BangPatterns        #-}
 {-# LANGUAGE ConstraintKinds     #-}
 {-# LANGUAGE ExplicitNamespaces  #-}
 {-# LANGUAGE GADTs               #-}
@@ -11,7 +12,6 @@ import           CommandLine                (Options (..))
 
 import           Control.Monad.Identity     (Identity (runIdentity))
 import           Data.Functor.Const         (Const (..))
-import           Data.HDiff                 (DiffOptions)
 import           Data.HDiff.Base            (Chg (Chg), Patch)
 import           Data.HDiff.Diff.Closure    (close)
 import           Data.HDiff.Diff.Types      (DiffOptions (doGlobalChgs, doMinHeight, doMode),
@@ -20,6 +20,7 @@ import           Data.HDiff.MetaVar         (MetaVar)
 import qualified Data.Map                   as M
 import           Data.Maybe                 (fromJust)
 import           Data.Word                  (Word64)
+import           Diff                       (diff)
 import           Generics.Simplistic        (Generic (Rep), SRep, V1 (..),
                                              repLeaves, repLeavesList, repMap,
                                              repMapM, toS, type (:*:) ((:*:)))
@@ -35,7 +36,6 @@ import           Options.Applicative        (execParser)
 import           Preprocess
 import           System.Exit
 import           Types
-import           WordTrie                   as T
 
 mainAST :: Maybe String -> Options -> IO ExitCode
 mainAST ext opts = withParsed1 ext mainParsers (optFileA opts)
@@ -43,14 +43,36 @@ mainAST ext opts = withParsed1 ext mainParsers (optFileA opts)
     print fa
     return ExitSuccess
 
-decoratePrepFixWithMap :: M.Map String DecData -> DecFix kappa fam ix -> DecFix kappa fam ix
-decoratePrepFixWithMap m p@Prim'{} = findOrBuild m p
-decoratePrepFixWithMap m r@Roll'{} = findOrBuild m r
-decoratePrepFixWithMap m x         = x
+getTestHeight :: DecFix kappa fam x -> Int
+getTestHeight (Hole' (Const (DecData _ h)) _) = h
+getTestHeight (Prim' (Const (DecData _ h)) _) = h
+getTestHeight (Roll' (Const (DecData _ h)) _) = h
 
-mainDiff :: Maybe String -> Options -> IO ExitCode
-mainDiff ext opts = withParsed2 ext mainParsers (optFileA opts) (optFileB opts)
-  $ \_ fa fb -> do
+decoratePrepFixWithMap :: M.Map String DecData -> DecHashFix kappa fam ix -> DecFix kappa fam ix
+decoratePrepFixWithMap m (Hole' (Const (DecHash dig _)) x) = Hole' (Const (DecData dig (-1))) x
+decoratePrepFixWithMap m (Prim' (Const (DecHash dig _)) x) = decData
+  where
+    lookupDecData = M.lookup (show dig) m
+    decData = case lookupDecData of
+      Nothing -> Prim' (Const (DecData dig 0)) x
+      Just dd -> Prim' (Const dd) x
+decoratePrepFixWithMap m r@(Roll' (Const (DecHash dig _)) x) = decData
+  where
+    lookupDecData = M.lookup (show dig) m
+    decData = case lookupDecData of
+      Nothing -> Roll' (Const (DecData dig (1 + h))) x'
+      Just dd -> Roll' (Const dd) x'
+    x' = repMap (decoratePrepFixWithMap m) x
+    xs = repLeavesList x
+    ns = map (exElim (getTestHeight . decoratePrepFixWithMap m)) xs
+    h = if not (null ns) then maximum ns else 0
+
+testIncremental :: (All Digestible kappa1, All Digestible kappa2, Monad m)
+                => SFix kappa1 fam1 ix1
+                -> SFix kappa2 fam2 ix2
+                -> m ( DecFix kappa1 fam1 ix1
+                     , DecFix kappa2 fam2 ix2)
+testIncremental fa fb = do
     let decFa = decorate fa
 
     let hashFb = decorateHash fb
@@ -60,9 +82,30 @@ mainDiff ext opts = withParsed2 ext mainParsers (optFileA opts) (optFileB opts)
     -- print hashMap
 
     let decFb = decoratePrepFixWithMap hashMap hashFb
-    print decFb
 
-    -- let patch = diff 1 decFa decFb
+    return (decFa, decFb)
+
+testOriginal :: (All Digestible kappa1, All Digestible kappa2, Monad m)
+                => SFix kappa1 fam1 ix1
+                -> SFix kappa2 fam2 ix2
+                -> m ( DecFix kappa1 fam1 ix1
+                     , DecFix kappa2 fam2 ix2)
+testOriginal fa fb = do
+    let decFa = decorate fa
+    let decFb = decorate fb
+
+    return (decFa, decFb)
+
+mainDiff :: Maybe String -> Options -> IO ExitCode
+mainDiff ext opts = withParsed2 ext mainParsers (optFileA opts) (optFileB opts)
+  $ \_ fa fb -> do
+    -- (!decFa, !decFb) <- testIncremental fa fb
+    (!decFa, !decFb) <- testOriginal fa fb
+
+    -- let prepFa = convertDecFixToPrepFix decFa
+    -- let prepFb = convertDecFixToPrepFix decFb
+
+    -- let patch = diff 1 prepFa prepFb
     -- print patch
 
     return ExitSuccess

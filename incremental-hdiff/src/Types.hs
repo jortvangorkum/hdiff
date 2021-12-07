@@ -18,12 +18,16 @@ import           Generics.Simplistic.Deep
 import           Generics.Simplistic.Digest
 import           Generics.Simplistic.Util
 
+data DecHash = DecHash { dig :: Digest, height :: Maybe Int }
+  deriving (Eq, Show)
+
 data DecData = DecData
   { treeDigest :: Digest
   , treeHeight :: Int
   } deriving (Eq, Show)
 
 type DecFix kappa fam = SFixAnn kappa fam (Const DecData)
+type DecHashFix kappa fam = SFixAnn kappa fam (Const DecHash)
 
 instance (All Show kappa) => Show (DecFix kappa fam ix) where
   show = myRender . decFixPretty

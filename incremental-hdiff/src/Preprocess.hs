@@ -8,22 +8,21 @@
 
 module Preprocess where
 
-import           Data.Functor.Const                        (Const (..))
-import qualified Data.Map                                  as M
-import           Data.Proxy                                (Proxy (..))
-import qualified Data.Text                                 as T
-import           Data.Text.Prettyprint.Doc
-import           Data.Text.Prettyprint.Doc.Render.Terminal
-import           Data.Word                                 (Word64)
-import           GHC.Generics                              (Generic (Rep), V1)
+import           Data.Functor.Const         (Const (..))
+import           Data.HDiff.Diff.Preprocess (PrepData (PrepData), PrepFix (..))
+import qualified Data.Map                   as M
+import           Data.Proxy                 (Proxy (..))
+import qualified Data.Text                  as T
+import           Data.Word                  (Word64)
+import           GHC.Generics               (Generic (Rep), V1)
 import           Generics.Simplistic
 import           Generics.Simplistic.Deep
 import           Generics.Simplistic.Digest
-import           Generics.Simplistic.Pretty                (sfixAnnPretty)
-import qualified Generics.Simplistic.Pretty                as D
+import           Generics.Simplistic.Pretty (sfixAnnPretty)
+import qualified Generics.Simplistic.Pretty as D
 import           Generics.Simplistic.Util
 import           Types
-import qualified WordTrie                                  as Tr
+import qualified WordTrie                   as Tr
 
 maxAlg :: forall phi f
         . (forall a . phi a -> Int)
@@ -65,38 +64,10 @@ setAnn (Hole' ann x) ann' = Hole' (Const ann') x
 setAnn (Prim' ann x) ann' = Prim' (Const ann') x
 setAnn (Roll' ann x) ann' = Roll' (Const ann') x
 
-findOrBuild :: M.Map String DecData
-            -> DecFix kappa fam ix
-            -> DecFix kappa fam ix
-findOrBuild m dec = p'
-  where
-    mp = M.lookup ((getHash . getAnn) dec) m
-    p' = case mp of
-      Nothing -> decorateDecData m dec
-      Just ha -> setAnn dec ha
-
-decorateDecData :: forall kappa fam at .
-                M.Map String DecData
-                -> DecFix kappa fam at
-                -> DecFix kappa fam at
-decorateDecData m = synthesize roll prim holl
-  where
-    holl = error "No Hole in Decorate"
-
-    prim :: (Elem b kappa) => Const DecData b -> b -> Const DecData b
-    prim (Const (DecData dig _)) x = Const $ DecData dig 0
-
-    roll :: Const DecData b
-         -> SRep (Const DecData) (Rep b)
-         -> Const DecData b
-    roll (Const (DecData dig _)) sr = Const $ DecData dig h
-      where
-        h  = 1 + maxAlg (treeHeight . getConst) sr
-
 decorateHash :: forall kappa fam at
           . (All Digestible kappa)
          => SFix kappa fam at
-         -> DecFix kappa fam at
+         -> DecHashFix kappa fam at
 decorateHash = synthesize (const onRec) (const onPrim) (const botElim)
   where
     botElim :: V1 x -> a
@@ -105,12 +76,12 @@ decorateHash = synthesize (const onRec) (const onPrim) (const botElim)
     pp :: Proxy kappa
     pp = Proxy
 
-    onPrim :: (Elem b kappa) => b -> Const DecData b
-    onPrim b = Const $ DecData (digPrim pp b) (-1)
+    onPrim :: (Elem b kappa) => b -> Const DecHash b
+    onPrim b = Const $ DecHash (digPrim pp b) Nothing
 
-    onRec :: SRep (Const DecData) (Rep b)
-          -> Const DecData b
-    onRec sr = Const $ DecData (authAlg (treeDigest . getConst) sr) (-1)
+    onRec :: SRep (Const DecHash) (Rep b)
+          -> Const DecHash b
+    onRec sr = Const $ DecHash (authAlg (dig . getConst) sr) Nothing
 
 getW64s :: Const DecData ix -> [Word64]
 getW64s (Const (DecData treeDigest _)) = toW64s treeDigest
@@ -152,3 +123,8 @@ foldPrepFixToTrie = cataP hole prim roll
     hole ann x = mempty
     prim ann x = Tr.insert (getHeight ann) (getW64s ann) Tr.empty
     roll ann   = Tr.insert (getHeight ann) (getW64s ann)
+
+convertDecFixToPrepFix :: DecFix kappa fam ix -> PrepFix () kappa fam ix
+convertDecFixToPrepFix (Hole' (Const (DecData dig h)) x) = Hole' (Const (PrepData dig h ())) x
+convertDecFixToPrepFix (Prim' (Const (DecData dig h)) x) = Prim' (Const (PrepData dig h ())) x
+convertDecFixToPrepFix (Roll' (Const (DecData dig h)) x) = Roll' (Const (PrepData dig h ())) (repMap convertDecFixToPrepFix x)
