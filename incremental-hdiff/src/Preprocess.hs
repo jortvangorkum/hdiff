@@ -108,14 +108,14 @@ foldPrepFixToDecDataMap = cataP f g h
   where
     f ann x = M.empty
     g ann x = M.insert (getHash ann) (getConst ann) M.empty
-    h ann x = M.insert (getHash ann) (getConst ann) x
+    h ann   = M.insert (getHash ann) (getConst ann)
 
 foldPrepFixToMap :: DecFix kappa fam ix -> M.Map String Int
 foldPrepFixToMap = cataP f g h
   where
     f ann x = M.empty
     g ann x = M.insert (getHash ann) (getHeight ann) M.empty
-    h ann x = M.insert (getHash ann) (getHeight ann) x
+    h ann   = M.insert (getHash ann) (getHeight ann)
 
 foldPrepFixToTrie :: DecFix kappa fam ix -> Tr.Trie Int
 foldPrepFixToTrie = cataP hole prim roll
