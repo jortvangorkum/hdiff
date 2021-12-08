@@ -128,3 +128,27 @@ convertDecFixToPrepFix :: DecFix kappa fam ix -> PrepFix () kappa fam ix
 convertDecFixToPrepFix (Hole' (Const (DecData dig h)) x) = Hole' (Const (PrepData dig h ())) x
 convertDecFixToPrepFix (Prim' (Const (DecData dig h)) x) = Prim' (Const (PrepData dig h ())) x
 convertDecFixToPrepFix (Roll' (Const (DecData dig h)) x) = Roll' (Const (PrepData dig h ())) (repMap convertDecFixToPrepFix x)
+
+getTestHeight :: DecFix kappa fam x -> Int
+getTestHeight (Hole' (Const (DecData _ h)) _) = h
+getTestHeight (Prim' (Const (DecData _ h)) _) = h
+getTestHeight (Roll' (Const (DecData _ h)) _) = h
+
+decoratePrepFixWithMap :: M.Map String DecData -> DecHashFix kappa fam ix -> DecFix kappa fam ix
+decoratePrepFixWithMap m (Hole' (Const (DecHash dig _)) x) = Hole' (Const (DecData dig (-1))) x
+decoratePrepFixWithMap m (Prim' (Const (DecHash dig _)) x) = decData
+  where
+    lookupDecData = M.lookup (show dig) m
+    decData = case lookupDecData of
+      Nothing -> Prim' (Const (DecData dig 0)) x
+      Just dd -> Prim' (Const dd) x
+decoratePrepFixWithMap m r@(Roll' (Const (DecHash dig _)) x) = decData
+  where
+    lookupDecData = M.lookup (show dig) m
+    decData = case lookupDecData of
+      Nothing -> Roll' (Const (DecData dig (1 + h))) x'
+      Just dd -> Roll' (Const dd) x'
+    x' = repMap (decoratePrepFixWithMap m) x
+    xs = repLeavesList x
+    ns = map (exElim (getTestHeight . decoratePrepFixWithMap m)) xs
+    h = if not (null ns) then maximum ns else 0
