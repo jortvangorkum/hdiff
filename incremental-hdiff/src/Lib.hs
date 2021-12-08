@@ -1,36 +1,41 @@
 {-# LANGUAGE AllowAmbiguousTypes #-}
+{-# LANGUAGE BangPatterns        #-}
 {-# LANGUAGE ConstraintKinds     #-}
+{-# LANGUAGE ExplicitNamespaces  #-}
 {-# LANGUAGE GADTs               #-}
 {-# LANGUAGE RankNTypes          #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+
 module Lib where
 
 import           CommandLine                (Options (..))
 
 import           Control.Monad.Identity     (Identity (runIdentity))
 import           Data.Functor.Const         (Const (..))
-import           Data.Functor.Identity
-import           Data.HDiff                 (diff)
-import           Data.HDiff.Diff.Align      (align)
+import           Data.HDiff.Base            (Chg (Chg), Patch)
+import           Data.HDiff.Diff.Closure    (close)
+import           Data.HDiff.Diff.Types      (DiffOptions (doGlobalChgs, doMinHeight, doMode),
+                                             MinHeight, diffOptionsDefault)
+import           Data.HDiff.MetaVar         (MetaVar)
 import qualified Data.Map                   as M
 import           Data.Maybe                 (fromJust)
 import           Data.Word                  (Word64)
+import           Diff                       (diff)
 import           Generics.Simplistic        (Generic (Rep), SRep, V1 (..),
                                              repLeaves, repLeavesList, repMap,
-                                             repMapM, toS)
-import           Generics.Simplistic.Deep   (CompoundCnstr,
-                                             HolesAnn (Hole', Prim', Roll'),
-                                             PrimCnstr, SFixAnn, cataM)
-import           Generics.Simplistic.Digest (Digest (getDigest), toW64s)
+                                             repMapM, toS, type (:*:) ((:*:)))
+import           Generics.Simplistic.Deep
+import           Generics.Simplistic.Digest (Digest (getDigest), Digestible,
+                                             toW64s)
 import qualified Generics.Simplistic.Digest as D
-import           Generics.Simplistic.Util   (All, Exists (Exists), exElim)
+import           Generics.Simplistic.Util   (All, Delta, Elem, Exists (Exists),
+                                             exElim, (:*:))
 import           Languages.Interface
 import           Languages.Main
 import           Options.Applicative        (execParser)
-import           Preprocess                 (PrepData (..), PrepFix, decorate,
-                                             getHash, getHeight, getW64s)
+import           Preprocess
 import           System.Exit
-import           WordTrie                   as T
+import           Types
 
 mainAST :: Maybe String -> Options -> IO ExitCode
 mainAST ext opts = withParsed1 ext mainParsers (optFileA opts)
@@ -38,86 +43,46 @@ mainAST ext opts = withParsed1 ext mainParsers (optFileA opts)
     print fa
     return ExitSuccess
 
-data Tree a = Leaf
-            | Node (Tree a) a (Tree a)
+testIncremental :: (All Digestible kappa1, All Digestible kappa2, Monad m)
+                => SFix kappa1 fam1 ix1
+                -> SFix kappa2 fam2 ix2
+                -> m (DecFix kappa1 fam1 ix1,
+                      DecFix kappa2 fam2 ix2)
+testIncremental fa fb = do
+    let decFa = decorate fa
 
-cataT :: b
-      -> (b -> a -> b -> b)
-      -> Tree a -> b
-cataT f _ Leaf         = f
-cataT f g (Node l x r) = g (cataT f g l) x (cataT f g r)
+    let hashFb = decorateHash fb
+    -- print hashFb
 
-cataTM :: Monad m => m b
-       -> (m b -> a -> m b -> m b)
-       -> Tree a -> m b
-cataTM f _ Leaf         = f
-cataTM f g (Node l x r) = g (cataTM f g l) x (cataTM f g r)
+    let hashMap = foldPrepFixToDecDataMap decFa
+    -- print hashMap
 
-testTree :: Tree Int
-testTree = Node (Node Leaf 1 Leaf) 2 Leaf
+    let decFb = decoratePrepFixWithMap hashMap hashFb
 
-testFoldT :: Tree Int -> [Int]
-testFoldT = cataT leaf node
-  where
-    leaf = [0]
-    node l x r = l ++ [x] ++ r
+    return (decFa, decFb)
 
-testFoldTM :: Tree Int -> [Int]
-testFoldTM = runIdentity . cataTM leaf node
-  where
-    leaf = Identity [0]
-    node :: Monad m => m [Int] -> Int -> m [Int] -> m [Int]
-    node l x r = do
-      l' <- l
-      r' <- r
-      return $ l' ++ [x] ++ r'
+testOriginal :: (All Digestible kappa1, All Digestible kappa2, Monad m)
+                => SFix kappa1 fam1 ix1
+                -> SFix kappa2 fam2 ix2
+                -> m ( DecFix kappa1 fam1 ix1
+                     , DecFix kappa2 fam2 ix2)
+testOriginal fa fb = do
+    let decFa = decorate fa
+    let decFb = decorate fb
 
-cataP :: Monoid m =>
-      (forall x . Const (PrepData a) x -> V1 x -> m)
-      -> (forall x . PrimCnstr kappa fam x => Const (PrepData a) x -> x -> m)
-      -> (forall x . CompoundCnstr kappa fam x => Const (PrepData a) x -> m -> m)
-      -> PrepFix a kappa fam ix -> m
-cataP f g h (Hole' ann x) = f ann x
-cataP f g h (Prim' ann x) = g ann x
-cataP f g h (Roll' ann x) = h ann x'
-  where
-    x' = repLeaves (cataP f g h) (<>) mempty x
-
-testFold :: PrepFix a kappa fam ix -> M.Map String Int
-testFold = cataP f g h
-  where
-    f ann x = M.empty
-    g ann x = M.insert (take 5 (getHash ann)) 0 M.empty
-    h ann x = M.insert (take 5 (getHash ann)) xs x
-      where
-        xs = if not $ null (M.elems x)
-             then 1 + maximum (M.elems x)
-             else 0
-
-foldPrepFixToTrie :: PrepFix a kappa fam ix -> Trie Int
-foldPrepFixToTrie = cataP hole prim roll
-  where
-    hole ann x = mempty
-    prim ann x = T.insert (getHeight ann) (getW64s ann) T.empty
-    roll ann   = T.insert (getHeight ann) (getW64s ann)
+    return (decFa, decFb)
 
 mainDiff :: Maybe String -> Options -> IO ExitCode
 mainDiff ext opts = withParsed2 ext mainParsers (optFileA opts) (optFileB opts)
   $ \_ fa fb -> do
-    -- let decFa = decorate fa
-    -- print decFa
+    (!decFa, !decFb) <- testIncremental fa fb
+    -- (!decFa, !decFb) <- testOriginal fa fb
 
-    -- let hashMap = testFold decFa
-    -- print hashMap
+    -- let prepFa = convertDecFixToPrepFix decFa
+    -- let prepFb = convertDecFixToPrepFix decFb
 
-    -- let trie = foldPrepFixToTrie decFa
-    -- print trie
-
-    let patch = diff 1 fa fb
-    print patch
-
-    let alPatch = align patch
-    print alPatch
+    -- let patch = diff 1 prepFa prepFb
+    -- print patch
 
     return ExitSuccess
 
