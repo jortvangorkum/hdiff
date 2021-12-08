@@ -70,8 +70,8 @@ decoratePrepFixWithMap m r@(Roll' (Const (DecHash dig _)) x) = decData
 testIncremental :: (All Digestible kappa1, All Digestible kappa2, Monad m)
                 => SFix kappa1 fam1 ix1
                 -> SFix kappa2 fam2 ix2
-                -> m ( DecFix kappa1 fam1 ix1
-                     , DecFix kappa2 fam2 ix2)
+                -> m (DecFix kappa1 fam1 ix1,
+                      DecFix kappa2 fam2 ix2)
 testIncremental fa fb = do
     let decFa = decorate fa
 
@@ -99,8 +99,8 @@ testOriginal fa fb = do
 mainDiff :: Maybe String -> Options -> IO ExitCode
 mainDiff ext opts = withParsed2 ext mainParsers (optFileA opts) (optFileB opts)
   $ \_ fa fb -> do
-    -- (!decFa, !decFb) <- testIncremental fa fb
-    (!decFa, !decFb) <- testOriginal fa fb
+    (!decFa, !decFb) <- testIncremental fa fb
+    -- (!decFa, !decFb) <- testOriginal fa fb
 
     -- let prepFa = convertDecFixToPrepFix decFa
     -- let prepFb = convertDecFixToPrepFix decFb
