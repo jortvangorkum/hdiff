@@ -17,7 +17,7 @@ parse = do
   (str, len) <- newCStringLen sourceCode
   tree <- ts_parser_parse_string parser nullPtr str len
 
-  printTree2 tree
+  printTree tree
 
   pTree <- convertPtrToTree tree
 
