@@ -1,0 +1,56 @@
+{-# LANGUAGE RecordWildCards #-}
+module Parse.Helper where
+
+import           Control.Monad         (forM)
+import           Foreign.Marshal.Alloc (malloc, mallocBytes)
+import           Foreign.Marshal.Array (mallocArray)
+import           Foreign.Ptr           (Ptr (..), nullPtr, plusPtr)
+import           Foreign.Storable      (peek, peekElemOff, poke)
+import           TreeSitter.Node
+import           TreeSitter.Tree
+
+getRootNode :: Ptr Tree -> IO Node
+getRootNode ptr = getRootNodePtr ptr >>= getNodeFromPtr
+
+getRootNodePtr :: Ptr Tree -> IO (Ptr Node)
+getRootNodePtr tree = do
+  n <- malloc
+  ts_tree_root_node_p tree n
+  return n
+
+getNodeFromPtr :: Ptr Node -> IO Node
+getNodeFromPtr ptr = do peek ptr
+
+getChildrenFromNode :: TSNode -> Int -> IO (Ptr Node)
+getChildrenFromNode nodeTSNode childCount = do
+  children <- mallocArray childCount
+  tsNode   <- malloc
+  poke tsNode nodeTSNode
+  ts_node_copy_child_nodes tsNode children
+  return children
+
+foldPtrTree :: (Node -> [a] -> IO a) -> Ptr Tree -> IO a
+foldPtrTree f ptrTree = do
+  rootNode <- getRootNode ptrTree
+  foldNode f rootNode
+
+foldNode :: (Node -> [a] -> IO a) -> Node -> IO a
+foldNode f node = do
+  let Node {..} = node
+
+  let childCount = fromIntegral nodeChildCount
+  children <- getChildrenFromNode nodeTSNode childCount
+  children' <- foldChildren f children childCount
+
+  f node children'
+
+foldChildren :: (Node -> [a] -> IO a) -> Ptr Node -> Int -> IO [a]
+foldChildren f children count =
+  if count == 0
+    then return []
+    else forM
+      [0 .. count - 1]
+      (\n -> do
+        child <- peekElemOff children n
+        foldNode f child
+      )
