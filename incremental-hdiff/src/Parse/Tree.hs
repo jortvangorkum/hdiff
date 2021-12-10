@@ -11,7 +11,7 @@ data ParseTree = PNode String [ParseTree]
   deriving (Eq, Show)
 
 convertPtrToTree :: Ptr Tree -> IO ParseTree
-convertPtrToTree = cataPtrTree f
+convertPtrToTree = mapPtrTree f
   where
     f Node {..} children = do
       nodeName <- peekCString nodeType

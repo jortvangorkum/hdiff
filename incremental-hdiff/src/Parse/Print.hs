@@ -11,7 +11,7 @@ import           TreeSitter.Tree
 
 
 printTree :: Ptr Tree -> IO ()
-printTree = cataPtrTree f
+printTree = mapPtrTree f
   where
     f node children = void (printNode node)
 

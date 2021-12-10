@@ -6,21 +6,25 @@ import           Parse.Print
 import           Parse.Tree         (convertPtrToTree)
 import           TreeSitter.Haskell
 import           TreeSitter.Parser
+import           TreeSitter.Tree
+
+getParseTreeFromFile :: Ptr Parser -> String -> IO (Ptr Tree)
+getParseTreeFromFile parser path = do
+  sourceCode <- readFile path
+  (str, len) <- newCStringLen sourceCode
+  ts_parser_parse_string parser nullPtr str len
 
 parse :: IO ()
 parse = do
   parser <- ts_parser_new
   ts_parser_set_language parser tree_sitter_haskell
 
-  let sourceCode = "module Test (main) where\nimport Lib\nf1 = undefined\nf2 = undefined"
+  treeO <- getParseTreeFromFile parser "./examples/While/Big/100/O.hs"
 
-  (str, len) <- newCStringLen sourceCode
-  tree <- ts_parser_parse_string parser nullPtr str len
+  -- printTree tree
 
-  printTree tree
+  -- pTree <- convertPtrToTree tree
 
-  pTree <- convertPtrToTree tree
-
-  print pTree
+  -- print pTree
 
   return ()

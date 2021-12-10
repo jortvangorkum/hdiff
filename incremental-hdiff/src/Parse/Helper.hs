@@ -29,28 +29,28 @@ getChildrenFromNode nodeTSNode childCount = do
   ts_node_copy_child_nodes tsNode children
   return children
 
-cataPtrTree :: (Node -> [a] -> IO a) -> Ptr Tree -> IO a
-cataPtrTree f ptrTree = do
+mapPtrTree :: (Node -> [a] -> IO a) -> Ptr Tree -> IO a
+mapPtrTree f ptrTree = do
   rootNode <- getRootNode ptrTree
-  cataNode f rootNode
+  mapNode f rootNode
 
-cataNode :: (Node -> [a] -> IO a) -> Node -> IO a
-cataNode f node = do
+mapNode :: (Node -> [a] -> IO a) -> Node -> IO a
+mapNode f node = do
   let Node {..} = node
 
   let childCount = fromIntegral nodeChildCount
   children <- getChildrenFromNode nodeTSNode childCount
-  children' <- cataChildren f children childCount
+  children' <- mapChildren f children childCount
 
   f node children'
 
-cataChildren :: (Node -> [a] -> IO a) -> Ptr Node -> Int -> IO [a]
-cataChildren f children count =
+mapChildren :: (Node -> [a] -> IO a) -> Ptr Node -> Int -> IO [a]
+mapChildren f children count =
   if count == 0
     then return []
     else forM
       [0 .. count - 1]
       (\n -> do
         child <- peekElemOff children n
-        cataNode f child
+        mapNode f child
       )
