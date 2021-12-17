@@ -19,14 +19,6 @@ main = do
   let x = generateTree 21
   let y = changeLeaf 100 $ generateTree 21
 
-  let decX = merkelize x
 
-  let decY = genMT decX y
-
-  let (n, m) = sumMerkleTree decX
-  putStrLn $ "Result1: " ++ show n
-
-  let (n', m') = sumMerkleTree decY
-  putStrLn $ "Result2: " ++ show n'
 
   return ()

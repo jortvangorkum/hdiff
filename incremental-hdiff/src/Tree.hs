@@ -53,7 +53,7 @@ sumMerkleTree :: MerkleTree Int -> (Int, M.Map String Int)
 sumMerkleTree (LeafM (x, h))      = (x, M.insert (showHash h) x M.empty)
 sumMerkleTree (NodeM l (x, h) r)  = (x', M.insert (showHash h) x' (ml <> mr))
   where
-    x' = x + sum [lx, rx]
+    x' = x + lx + rx
     (lx, ml) = sumMerkleTree l
     (rx, mr) = sumMerkleTree r
 
@@ -64,7 +64,7 @@ sumMerkleTreeWithMap m (NodeM l (x, h) r) = y
     y = case M.lookup (showHash h) m of
       Nothing -> (x', M.insert (showHash h) x' (ml <> mr))
       Just n  -> (n, m)
-    x' = x + sum [lx, rx]
+    x' = x + lx + rx
     (lx, ml) = sumMerkleTreeWithMap m l
     (rx, mr) = sumMerkleTreeWithMap m r
 
@@ -96,47 +96,12 @@ cataMerkleTreeMap leaf node m (NodeM l x r) = node m l' x r'
     l' = cataMerkleTreeMap leaf node m l
     r' = cataMerkleTreeMap leaf node m r
 
-
-genMT2 :: (Show a, Eq a) => MerkleTree a -> BinTree a -> (Bool, MerkleTree a)
-genMT2 lm@(LeafM (y, h)) l@(Leaf x)
-  | x == y    = (True, lm)
-  | otherwise = (False, merkelize l)
-genMT2 nm@(NodeM lm (y, h) rm) n@(Node l x r)
-  | x == y && sl && sr = (True, nm)
-  | otherwise = (False, x')
+cataTree :: (a -> b) -> (b -> a -> b -> b) -> BinTree a -> b -- and MerkleTree
+cataTree leaf node (Leaf x) = leaf x
+cataTree leaf node (Node l x r) = node l' x r'
   where
-    x' =  NodeM ml (x, digestConcat [digest "Node", digest x, digest hl, digest hr]) mr
-    hl = getRootDigest ml
-    hr = getRootDigest mr
-    (sl, ml) = genMT2 lm l
-    (sr, mr) = genMT2 rm r
-genMT2 _ x = (False, merkelize x)
-
-genMT :: (Show a, Eq a) => MerkleTree a -> BinTree a -> MerkleTree a
-genMT lm@(LeafM (y, h)) l@(Leaf x)
-  | x == y    = lm
-  | otherwise = merkelize l
-genMT nm@(NodeM lm (y, h) rm) n@(Node l x r)
-  | x == y && sl && sr = nm
-  | sl && sr = NodeM lm (x, digestConcat [digest "Node", digest x, digest hl, digest hr]) rm
-  | sl = NodeM lm (x, digestConcat [digest "Node", digest x, digest hl, digest hr']) mr
-  | sr = NodeM ml (x, digestConcat [digest "Node", digest x, digest hl', digest hr]) rm
-  | otherwise = merkelize n
-  where
-    hl = getRootDigest lm
-    hr = getRootDigest rm
-    hl' = getRootDigest ml
-    hr' = getRootDigest mr
-    ml = merkelize l
-    mr = merkelize r
-    sl = sameTree lm l
-    sr = sameTree rm r
-genMT _ x = merkelize x
-
-sameTree :: Eq a => MerkleTree a -> BinTree a -> Bool
-sameTree (LeafM (y, _)) (Leaf x) = x == y
-sameTree (NodeM lm (y, _) rm) (Node l x r) = x == y && sameTree lm l && sameTree rm r
-sameTree _ _ = False
+    l' = cataTree leaf node l
+    r' = cataTree leaf node r
 
 changeLeaf :: a -> BinTree a -> BinTree a
 changeLeaf y (Leaf x)     = Leaf y
