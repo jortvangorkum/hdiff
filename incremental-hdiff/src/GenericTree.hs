@@ -5,18 +5,21 @@
 {-# LANGUAGE UndecidableInstances #-}
 module GenericTree where
 
+import           Data.Functor.Classes       (Show1 (..))
+import qualified Data.Map                   as M
+import           Debug.Trace                (trace)
 import           Generics.Simplistic.Digest
 
-newtype Fix f = In (f (Fix f))
+newtype Fix f = In { unFix :: f (Fix f) }
 
 instance Eq (f (Fix f)) => Eq (Fix f) where
-  (In f) == (In g) = f == g
+  f == g = unFix f == unFix g
 
 instance Show (f (Fix f)) => Show (Fix f) where
-  show (In x) = show x
+  show = show . unFix
 
 cata :: Functor f => (f a -> a) -> Fix f -> a
-cata alg (In t) = alg (fmap (cata alg) t)
+cata alg t = alg (fmap (cata alg) (unFix t))
 
 newtype I r         = I r                   deriving (Show)
 newtype K a r       = K a                   deriving (Show)
@@ -86,38 +89,47 @@ foldMerkle x = cata f mt
   GENERIC TREE
 -}
 
+debugHash :: Digest -> String
+debugHash h = take 5 (show (getDigest h))
+
 type TreeG  a = Fix (TreeGr a)
 
 type TreeGr a = K a
             :+: ((I :*: K a) :*: I)
 
 class (Functor f) => MerkelizeG f where
-  merkleG :: (MerkelizeG g) => f (Fix g) -> (f :*: K Digest) (Fix g)
+  merkleG :: (MerkelizeG g) => f (Fix g) -> (f :*: K Digest) (Fix (g :*: K Digest))
 
 instance (Show a) => MerkelizeG (K a) where
   merkleG (K x) = Pair (K x, K h)
     where
+      debug = trace ("Digest K: " ++ debugHash h)
       h = digestConcat [digest "K", digest x]
 
 instance MerkelizeG I where
-  merkleG i@(I (In x)) = Pair (I (In prevX), K h)
+  merkleG (I x) = Pair (I prevX, K h)
     where
-      (Pair (prevX, K ph)) = merkleG x
+      debug = trace ("Digest I: " ++ debugHash h)
+      merkleI = In . merkleG . unFix
+      prevX@(In (Pair (_, K ph))) = merkleI x
       h = digestConcat [digest "I", ph]
 
 instance (MerkelizeG f, MerkelizeG g) => MerkelizeG (f :+: g) where
   merkleG (Inl x) = Pair (Inl prevX, K h)
     where
+      debug = trace ("Digest Inl: " ++ debugHash h)
       (Pair (prevX, K ph)) = merkleG x
       h = digestConcat [digest "Inl", ph]
   merkleG (Inr x) = Pair (Inr prevX, K h)
     where
+      debug = trace ("Digest Inr: " ++ debugHash h)
       (Pair (prevX, K ph)) = merkleG x
       h = digestConcat [digest "Inr", ph]
 
 instance (MerkelizeG f, MerkelizeG g) => MerkelizeG (f :*: g) where
-  merkleG p@(Pair (x, y)) = Pair (Pair (prevX, prevY), K h)
+  merkleG (Pair (x, y)) = Pair (Pair (prevX, prevY), K h)
     where
+      debug = trace ("Digest Pair: " ++ debugHash h)
       (Pair (prevX, K phx)) = merkleG x
       (Pair (prevY, K phy)) = merkleG y
       h = digestConcat [digest "Pair", phx, phy]
@@ -137,10 +149,45 @@ cataInt = cata (\case
   Inl (K x)                         -> x
   Inr (Pair (Pair (I l, K x), I r)) -> l + x + r)
 
-showTreeG :: String
-showTreeG = show $ merkleG x
+cataMerkleInt :: TreeG Int -> Int
+cataMerkleInt x = cata f mt
   where
-    (In x) = exampleTreeG
+    mt = In $ merkleG $ unFix x
+    f :: (:*:) (TreeGr Int) (K Digest) Int -> Int
+    f (Pair (px, _)) = case px of
+      Inl (K x)                         -> x
+      Inr (Pair (Pair (I l, K x), I r)) -> l + x + r
+
+cataMerkle :: Show a => TreeG a -> [Digest]
+cataMerkle x = cata f mt
+  where
+    mt = In $ merkleG $ unFix x
+    f :: (:*:) (TreeGr a) (K Digest) [Digest] -> [Digest]
+    f (Pair (px, K h)) = case px of
+      Inl (K x)                         -> [h]
+      Inr (Pair (Pair (I l, K x), I r)) -> h : (l ++ r)
+    debug h = trace ("\nDigest Cata: " ++ debugHash h)
+
+showTreeG :: String
+showTreeG = show $ merkleG $ unFix exampleTreeG
+
+{-
+  Output showTreeG:
+
+  Pair (
+    Inr (
+      Pair (
+        Pair (
+          I Pair (
+            Inl (K 1), K (Digest {getDigest = 54f891366fdb7609991fd43bd9fce1536585e0ee1155950dd9f4e50e86ddd00b})
+          ), K 2)
+        , I Pair (
+          Inl (K 3), K (Digest {getDigest = 23b4fd7970f5e4d32fdbcc5229b865f4c40814c165549f1224455a9d03af9aae})
+        )
+      )
+    ), K (Digest {getDigest = 1ea1b35d366a098365f9a55cbea71b233490af0990710adffc62bc5c9a1cefb3})
+  )
+-}
 
 {-
   data Fix f = In (f (Fix f))
