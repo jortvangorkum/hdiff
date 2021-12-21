@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 47eeddeb06c57c09eb5ad7009b10c4ed5332598266283a877c8d91ef041ff5ae
+-- hash: 9a47bbf86d8baf96c6f67d900d32e242bf5bbb47da49de1e1bfbeea8634083d7
 
 name:           incremental-hdiff
 version:        0.1.0.0
@@ -36,7 +36,6 @@ library
       Lib
       Modes
       Preprocess
-      Test
       Tree
       Types
       WordTrie
