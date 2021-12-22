@@ -5,8 +5,8 @@
 {-# LANGUAGE UndecidableInstances #-}
 module GenericTree where
 
-import           Data.Functor.Classes       (Show1 (..))
 import qualified Data.Map                   as M
+import           Data.Maybe                 (fromMaybe)
 import           Debug.Trace                (trace)
 import           Generics.Simplistic.Digest
 
@@ -95,7 +95,10 @@ debugHash h = take 5 (show (getDigest h))
 type TreeG  a = Fix (TreeGr a)
 
 type TreeGr a = K a
-            :+: ((I :*: K a) :*: I)
+             :+: ((I :*: K a) :*: I)
+
+merkle :: MerkelizeG f => Fix f -> Fix (f :*: K Digest)
+merkle = In . merkleG . unFix
 
 class (Functor f) => MerkelizeG f where
   merkleG :: (MerkelizeG g) => f (Fix g) -> (f :*: K Digest) (Fix (g :*: K Digest))
@@ -152,26 +155,72 @@ cataInt = cata (\case
 cataMerkleInt :: TreeG Int -> Int
 cataMerkleInt x = cata f mt
   where
-    mt = In $ merkleG $ unFix x
+    mt = merkle x
     f :: (:*:) (TreeGr Int) (K Digest) Int -> Int
     f (Pair (px, _)) = case px of
       Inl (K x)                         -> x
       Inr (Pair (Pair (I l, K x), I r)) -> l + x + r
 
-cataMerkle :: Show a => TreeG a -> [Digest]
-cataMerkle x = cata f mt
+cataMerkleHash :: Show a => TreeG a -> [Digest]
+cataMerkleHash x = cata f mt
   where
-    mt = In $ merkleG $ unFix x
+    mt = merkle x
     f :: (:*:) (TreeGr a) (K Digest) [Digest] -> [Digest]
     f (Pair (px, K h)) = case px of
       Inl (K x)                         -> [h]
       Inr (Pair (Pair (I l, K x), I r)) -> h : (l ++ r)
     debug h = trace ("\nDigest Cata: " ++ debugHash h)
 
+cataMerkleMapInt :: TreeG Int -> M.Map String Int
+cataMerkleMapInt x = cata f mt
+  where
+    mt = merkle x
+    f :: (:*:) (TreeGr Int) (K Digest) (M.Map String Int) -> M.Map String Int
+    f (Pair (px, K h)) = case px of
+      Inl (K x)                         -> M.insert (debugHash h) x M.empty
+      Inr (Pair (Pair (I l, K x), I r)) -> M.insert (debugHash h) x (l <> r)
+
+cataMerkleMapValue :: Show a => TreeG a -> M.Map String a
+cataMerkleMapValue x = cata f mt
+  where
+    mt = merkle x
+    f :: (:*:) (TreeGr a) (K Digest) (M.Map String a) -> M.Map String a
+    f (Pair (px, K h)) = case px of
+      Inl (K x)                         -> M.insert (debugHash h) x M.empty
+      Inr (Pair (Pair (I l, K x), I r)) -> M.insert (debugHash h) x (l <> r)
+
+cataTreeG :: (Show a) => (a -> Digest -> b) -> (b -> a -> b -> Digest -> b) -> TreeG a -> b
+cataTreeG leaf node x = cata f mt
+  where
+    mt = merkle x
+    f (Pair (px, K h)) = case px of
+      Inl (K x)                         -> leaf x h
+      Inr (Pair (Pair (I l, K x), I r)) -> node l x r h
+
+cataMerkleMap :: TreeG Int -> (Int, M.Map String Int)
+cataMerkleMap = cataTreeG leaf node
+  where
+    leaf x h = (x, M.insert (debugHash h) x M.empty)
+    node (xl, ml) x (xr, mr) h = let x' = x + xl + xr
+                                 in (x', M.insert (debugHash h) x' (ml <> mr))
+
+cataMerkleWithMap :: M.Map String Int -> TreeG Int -> (Int, M.Map String Int)
+cataMerkleWithMap m = cataTreeG leaf node
+  where
+    leaf x h = (x, M.insert (debugHash h) x M.empty)
+    node (xl, ml) x (xr, mr) h = case M.lookup (debugHash h) m of
+      Nothing -> let x' = x + xl + xr
+                 in (x', M.insert (debugHash h) x' (ml <> mr))
+      Just n  -> (n, m)
+
 showTreeG :: String
 showTreeG = show $ merkleG $ unFix exampleTreeG
 
 {-
+  The Digest are only saved on the Inl and Inr, because of the Fix.
+  The Fix point is the point where the Digest gets saved.
+  This means that only the complete type TreeG gets saved and not its children
+
   Output showTreeG:
 
   Pair (
