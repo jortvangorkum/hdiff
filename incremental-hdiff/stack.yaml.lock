@@ -26,6 +26,20 @@ packages:
   original:
     hackage: alex-tools-0.4
 - completed:
+    hackage: criterion-1.5.12.0@sha256:f9c8c0cff7d6796702849258b22df103cde5baa5ee1f085b6b59f37074ec303f,5273
+    pantry-tree:
+      size: 2323
+      sha256: 92034e3e490c5fe0eab10277f6e35534b37dc0962347025630380c7d37d99ca1
+  original:
+    hackage: criterion-1.5.12.0
+- completed:
+    hackage: js-chart-2.9.4.1@sha256:0f4bc23d19ac869ec0cbdbd7596a5074ba4be68e85fa5bb76a3bed559907b3bc,1802
+    pantry-tree:
+      size: 652
+      sha256: 39a4777beb58727effeccb14d9f58f3d391446d035aefd30dd5eafe2a31b8ead
+  original:
+    hackage: js-chart-2.9.4.1
+- completed:
     hackage: binary-0.8.7.0@sha256:ae3e6cca723ac55c54bbb3fa771bcf18142bc727afd57818e66d6ee6c8044f12,7705
     pantry-tree:
       size: 1976

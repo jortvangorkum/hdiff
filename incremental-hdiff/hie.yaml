@@ -3,6 +3,12 @@ cradle:
     - path: "./src"
       component: "incremental-hdiff:lib"
 
+    - path: "./benchmarks/Main.hs"
+      component: "incremental-hdiff:exe:benchmark-tree"
+
+    - path: "./benchmarks/Paths_incremental_hdiff.hs"
+      component: "incremental-hdiff:exe:benchmark-tree"
+
     - path: "./app/Main.hs"
       component: "incremental-hdiff:exe:incremental-hdiff-exe"
 

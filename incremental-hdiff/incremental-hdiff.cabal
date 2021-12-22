@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 9a47bbf86d8baf96c6f67d900d32e242bf5bbb47da49de1e1bfbeea8634083d7
+-- hash: 14f10b75c79f4afe5096a5e4e3f92ee6e57fc8fcd61ae1912289598549a72c09
 
 name:           incremental-hdiff
 version:        0.1.0.0
@@ -48,6 +48,28 @@ library
     , containers
     , deepseq
     , hdiff
+    , mtl
+    , optparse-applicative
+    , parsec
+    , prettyprinter
+    , prettyprinter-ansi-terminal
+    , simplistic-generics
+    , text
+  default-language: Haskell2010
+
+executable benchmark-tree
+  main-is: Main.hs
+  other-modules:
+      Paths_incremental_hdiff
+  hs-source-dirs:
+      benchmarks
+  build-depends:
+      base >=4.7 && <5
+    , containers
+    , criterion
+    , deepseq
+    , hdiff
+    , incremental-hdiff
     , mtl
     , optparse-applicative
     , parsec

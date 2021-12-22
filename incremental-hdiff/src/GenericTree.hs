@@ -1,13 +1,17 @@
+{-# LANGUAGE DeriveAnyClass       #-}
 {-# LANGUAGE DeriveFunctor        #-}
+{-# LANGUAGE DeriveGeneric        #-}
 {-# LANGUAGE LambdaCase           #-}
 {-# LANGUAGE RankNTypes           #-}
 {-# LANGUAGE TypeOperators        #-}
 {-# LANGUAGE UndecidableInstances #-}
 module GenericTree where
 
+import           Control.DeepSeq
 import qualified Data.Map                   as M
 import           Data.Maybe                 (fromMaybe)
 import           Debug.Trace                (trace)
+import           GHC.Generics               (Generic, Generic1)
 import           Generics.Simplistic.Digest
 
 newtype Fix f = In { unFix :: f (Fix f) }
@@ -42,6 +46,37 @@ instance Functor I where
 
 instance Functor (K a) where
   fmap _ (K x) = K x
+
+-- Generic NFData
+-- https://hackage.haskell.org/package/deepseq-1.4.6.1/docs/src/Control.DeepSeq.html#line-535
+
+instance NFData (f (Fix f)) => NFData (Fix f) where
+  rnf (In x) = rnf x
+
+instance NFData r => NFData (I r) where
+  rnf = rnf1
+
+instance NFData1 I where
+  liftRnf f (I x) = f x
+
+instance (NFData a, NFData r) => NFData (K a r) where
+  rnf = rnf1
+
+instance NFData a => NFData1 (K a) where
+  liftRnf _ (K x) = rwhnf x
+
+instance (NFData1 f, NFData1 g) => NFData1 (f :+: g) where
+  liftRnf f (Inl x) = liftRnf f x
+  liftRnf f (Inr x) = liftRnf f x
+
+instance (NFData1 f, NFData1 g, NFData r) => NFData ((:+:) f g r) where
+  rnf = rnf1
+
+instance (NFData1 f, NFData1 g) => NFData1 (f :*: g) where
+  liftRnf f (Pair (x, y)) = liftRnf f x `seq` liftRnf f y
+
+instance (NFData1 f, NFData1 g, NFData r) => NFData ((:*:) f g r) where
+  rnf = rnf1
 
 {-
   TREE

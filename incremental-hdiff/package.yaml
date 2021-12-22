@@ -45,6 +45,13 @@ executables:
     dependencies:
       - incremental-hdiff
 
+  benchmark-tree:
+    main: Main.hs
+    source-dirs: benchmarks
+    dependencies:
+      - incremental-hdiff
+      - criterion
+
 tests:
   incremental-hdiff-test:
     main: Spec.hs
