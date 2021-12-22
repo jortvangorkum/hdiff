@@ -113,8 +113,7 @@ instance MerkelizeG I where
   merkleG (I x) = Pair (I prevX, K h)
     where
       debug = trace ("Digest I: " ++ debugHash h)
-      merkleI = In . merkleG . unFix
-      prevX@(In (Pair (_, K ph))) = merkleI x
+      prevX@(In (Pair (_, K ph))) = merkle x
       h = digestConcat [digest "I", ph]
 
 instance (MerkelizeG f, MerkelizeG g) => MerkelizeG (f :+: g) where
@@ -236,21 +235,4 @@ showTreeG = show $ merkleG $ unFix exampleTreeG
       )
     ), K (Digest {getDigest = 1ea1b35d366a098365f9a55cbea71b233490af0990710adffc62bc5c9a1cefb3})
   )
--}
-
-{-
-  data Fix f = In (f (Fix f))
-
-  cata :: Functor f => (f a -> a) -> Fix f -> a
-  cata alg (In t) = alg (fmap (cata alg) t)
-
-  newtype (:+:) f g a = Inl (f a) | Inr (g a)
-  newtype (:*:) f g a = Pair (f a , g a)
-  type constructors for :+: :*: Id en K
-
-  schrijf type TreeF a r = K a :+: I :*: K a :*: I en type Tree = Fix Tree f
-
-  merkle : Fix f -> Fix (f :*: K Hash)
-
-  cataMerkle : ... verwacht een Map als input
 -}
