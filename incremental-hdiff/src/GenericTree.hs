@@ -1,6 +1,4 @@
-{-# LANGUAGE DeriveAnyClass       #-}
 {-# LANGUAGE DeriveFunctor        #-}
-{-# LANGUAGE DeriveGeneric        #-}
 {-# LANGUAGE LambdaCase           #-}
 {-# LANGUAGE RankNTypes           #-}
 {-# LANGUAGE TypeOperators        #-}
@@ -46,6 +44,11 @@ instance Functor I where
 
 instance Functor (K a) where
   fmap _ (K x) = K x
+
+-- Digest NFData
+
+instance NFData Digest where
+  rnf = rwhnf
 
 -- Generic NFData
 -- https://hackage.haskell.org/package/deepseq-1.4.6.1/docs/src/Control.DeepSeq.html#line-535
@@ -127,12 +130,15 @@ foldMerkle x = cata f mt
 debugHash :: Digest -> String
 debugHash h = take 5 (show (getDigest h))
 
+type MerkleFix f = Fix (f :*: K Digest)
+type MerkleTree a = MerkleFix (TreeGr a)
+
 type TreeG  a = Fix (TreeGr a)
 
 type TreeGr a = K a
              :+: ((I :*: K a) :*: I)
 
-merkle :: MerkelizeG f => Fix f -> Fix (f :*: K Digest)
+merkle :: MerkelizeG f => Fix f -> MerkleFix f
 merkle = In . merkleG . unFix
 
 class (Functor f) => MerkelizeG f where
@@ -223,23 +229,41 @@ cataMerkleMapValue x = cata f mt
       Inl (K x)                         -> M.insert (debugHash h) x M.empty
       Inr (Pair (Pair (I l, K x), I r)) -> M.insert (debugHash h) x (l <> r)
 
-cataTreeG :: (Show a) => (a -> Digest -> b) -> (b -> a -> b -> Digest -> b) -> TreeG a -> b
-cataTreeG leaf node x = cata f mt
+cataMerkleTree :: (Show a) => (a -> Digest -> b) -> (b -> a -> b -> Digest -> b) -> MerkleTree a -> b
+cataMerkleTree leaf node = cata f
   where
-    mt = merkle x
     f (Pair (px, K h)) = case px of
       Inl (K x)                         -> leaf x h
       Inr (Pair (Pair (I l, K x), I r)) -> node l x r h
 
-cataMerkleMap :: TreeG Int -> (Int, M.Map String Int)
-cataMerkleMap = cataTreeG leaf node
+cataTreeG :: (Show a) => (a -> Digest -> b) -> (b -> a -> b -> Digest -> b) -> TreeG a -> b
+cataTreeG leaf node x = let mt = merkle x in cataMerkleTree leaf node mt
+
+cataMerkleMap :: MerkleTree Int -> (Int, M.Map String Int)
+cataMerkleMap = cataMerkleTree leaf node
   where
     leaf x h = (x, M.insert (debugHash h) x M.empty)
     node (xl, ml) x (xr, mr) h = let x' = x + xl + xr
                                  in (x', M.insert (debugHash h) x' (ml <> mr))
 
-cataMerkleWithMap :: M.Map String Int -> TreeG Int -> (Int, M.Map String Int)
-cataMerkleWithMap m = cataTreeG leaf node
+cataMap :: TreeG Int -> (Int, M.Map String Int)
+cataMap = cataTreeG leaf node
+  where
+    leaf x h = (x, M.insert (debugHash h) x M.empty)
+    node (xl, ml) x (xr, mr) h = let x' = x + xl + xr
+                                 in (x', M.insert (debugHash h) x' (ml <> mr))
+
+cataWithMap :: M.Map String Int -> TreeG Int -> (Int, M.Map String Int)
+cataWithMap m = cataTreeG leaf node
+  where
+    leaf x h = (x, M.insert (debugHash h) x M.empty)
+    node (xl, ml) x (xr, mr) h = case M.lookup (debugHash h) m of
+      Nothing -> let x' = x + xl + xr
+                 in (x', M.insert (debugHash h) x' (ml <> mr))
+      Just n  -> (n, m)
+
+cataMerkleWithMap :: M.Map String Int -> MerkleTree Int -> (Int, M.Map String Int)
+cataMerkleWithMap m = cataMerkleTree leaf node
   where
     leaf x h = (x, M.insert (debugHash h) x M.empty)
     node (xl, ml) x (xr, mr) h = case M.lookup (debugHash h) m of
