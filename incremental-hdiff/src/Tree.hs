@@ -106,3 +106,20 @@ cataTree leaf node (Node l x r) = node l' x r'
 changeLeaf :: a -> BinTree a -> BinTree a
 changeLeaf y (Leaf x)     = Leaf y
 changeLeaf y (Node l x r) = Node (changeLeaf y l) x r
+
+genMTwithMT :: (Show a, Eq a) => MerkleTree a -> BinTree a -> (Bool, MerkleTree a)
+genMTwithMT lm@(LeafM (y, h)) (Leaf x) =
+  if x == y
+    then (True, lm)
+    else (False, LeafM (y, digestConcat [digest "Leaf", digest y]))
+genMTwithMT nm@(NodeM lm (y, h) rm) (Node l x r) =
+  if x == y && sl && sr
+    then (True, nm)
+    else (False, NodeM l' (x, h') r')
+  where
+    (sl, l') = genMTwithMT lm l
+    (sr, r') = genMTwithMT rm r
+    hl = getRootDigest l'
+    hr = getRootDigest r'
+    h'  = digestConcat [digest "Node", digest x, hl, hr]
+genMTwithMT _ x = (False, merkelize x)

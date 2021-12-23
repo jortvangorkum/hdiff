@@ -23,10 +23,10 @@ instance Show (f (Fix f)) => Show (Fix f) where
 cata :: Functor f => (f a -> a) -> Fix f -> a
 cata alg t = alg (fmap (cata alg) (unFix t))
 
-newtype I r         = I r                   deriving (Show)
-newtype K a r       = K a                   deriving (Show)
-data (:+:) f g r    = Inl (f r) | Inr (g r) deriving (Show)
-newtype (:*:) f g r = Pair (f r, g r)       deriving (Show)
+newtype I r         = I r                   deriving (Show, Eq)
+newtype K a r       = K a                   deriving (Show, Eq)
+data (:+:) f g r    = Inl (f r) | Inr (g r) deriving (Show, Eq)
+newtype (:*:) f g r = Pair (f r, g r)       deriving (Show, Eq)
 
 infixr 7 :*:
 infixr 6 :+:
@@ -274,6 +274,35 @@ cataMerkleWithMap m = cataMerkleTree leaf node
 showTreeG :: String
 showTreeG = show $ merkleG $ unFix exampleTreeG
 
+getRootDigest :: MerkleTree a -> Digest
+getRootDigest (In (Pair (_, K h))) = h
+
+genMTWithMT :: (Show a, Eq a) => MerkleTree a -> TreeG a -> (Bool, MerkleTree a)
+genMTWithMT lm@(In (Pair (Inl (K y), K h)))
+            l@(In (Inl (K x)))
+            = if x == y
+              then (True, lm)
+              else (False, merkle l)
+genMTWithMT nm@(In (Pair (Inr (Pair (Pair (I lm, K y), I rm)), K h)))
+            n@(In (Inr (Pair (Pair (I l, K x), I r))))
+            = if x == y && sl && sr
+              then (True, nm)
+              else (False, In (Pair (Inr (Pair (Pair (I l', K x), I r')), K h')))
+            where
+              (sl, l') = genMTWithMT lm l
+              (sr, r') = genMTWithMT rm r
+              hl = getRootDigest l'
+              hr = getRootDigest r'
+              h' = digestConcat [ digest "Inr", digestConcat [
+                                  digest "Pair", digestConcat [
+                                     digest "Pair", hl, digestConcat [
+                                       digest "K", digest x
+                                     ],
+                                     hr
+                                   ]
+                                 ]
+                               ]
+genMTWithMT _ x = (False, merkle x)
 {-
   The Digest are only saved on the Inl and Inr, because of the Fix.
   The Fix point is the point where the Digest gets saved.
