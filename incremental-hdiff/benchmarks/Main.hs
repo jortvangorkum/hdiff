@@ -91,6 +91,10 @@ main = defaultMain
       , benchMerkleTreeWithSingleChange 10
       , benchMerkleTreeWithSingleChange 15
       , benchMerkleTreeWithSingleChange 20
+      , benchMerkleTreeWithSingleChange 21
+      , benchMerkleTreeWithSingleChange 22
+      , benchMerkleTreeWithSingleChange 23
+      , benchMerkleTreeWithSingleChange 24
       ]
   , bgroup "Generate Result"
       [ benchResult 1
@@ -114,11 +118,11 @@ main = defaultMain
       , benchCataMerkleWithMap 20
       ]
   , bgroup "Generate (Result, Map) with Map Single Change"
-      [ benchCataMerkleWithMap 1
-      , benchCataMerkleWithMap 5
-      , benchCataMerkleWithMap 10
-      , benchCataMerkleWithMap 15
-      , benchCataMerkleWithMap 20
+      [ benchChangeCataMerkleWithMap 1
+      , benchChangeCataMerkleWithMap 5
+      , benchChangeCataMerkleWithMap 10
+      , benchChangeCataMerkleWithMap 15
+      , benchChangeCataMerkleWithMap 20
       ]
   ]
 
