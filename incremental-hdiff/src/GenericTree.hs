@@ -10,7 +10,8 @@ import qualified Data.Map                   as M
 import           Data.Maybe                 (fromMaybe)
 import           Debug.Trace                (trace)
 import           GHC.Generics               (Generic, Generic1)
-import           Generics.Simplistic.Digest
+-- import           Generics.Simplistic.Digest
+import           Generics.Data.Digest.CRC32
 
 newtype Fix f = In { unFix :: f (Fix f) }
 
@@ -128,7 +129,7 @@ foldMerkle x = cata f mt
 -}
 
 debugHash :: Digest -> String
-debugHash h = take 5 (show (getDigest h))
+debugHash h = take 5 (show (getCRC32 h))
 
 type MerkleFix f = Fix (f :*: K Digest)
 type MerkleTree a = MerkleFix (TreeGr a)
@@ -238,6 +239,19 @@ cataMerkleTree leaf node = cata f
 
 cataTreeG :: (Show a) => (a -> Digest -> b) -> (b -> a -> b -> Digest -> b) -> TreeG a -> b
 cataTreeG leaf node x = let mt = merkle x in cataMerkleTree leaf node mt
+
+fib :: Int -> Int
+fib 0 = 0
+fib 1 = 1
+fib n = fib (n - 1) + fib (n - 2)
+
+cataMerkleMapFib :: MerkleTree Int -> (Int, M.Map String Int)
+cataMerkleMapFib = cataMerkleTree leaf node
+  where
+    leaf x h = let n = fib x
+               in (n, M.insert (debugHash h) n M.empty)
+    node (xl, ml) x (xr, mr) h = let n = fib x + xl + xr
+                                 in (n, M.insert (debugHash h) n (ml <> mr))
 
 cataMerkleMap :: MerkleTree Int -> (Int, M.Map String Int)
 cataMerkleMap = cataMerkleTree leaf node

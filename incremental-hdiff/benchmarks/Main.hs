@@ -34,6 +34,9 @@ benchCataMerkleWithMap n = env (setupMapMerkleTree n) (bench (show n) . nf (\(mt
 benchChangeCataMerkleWithMap :: Int -> Benchmark
 benchChangeCataMerkleWithMap n = env (setupMapMerkleTreeChange n) (bench (show n) . nf (\(mt, m) -> cataMerkleWithMap m mt))
 
+benchCataMerkleMapFib :: Int -> Benchmark
+benchCataMerkleMapFib n = env (setupMerkleTree n) (bench (show n) . nf cataMerkleMapFib)
+
 setupTree :: Int -> IO (TreeG Int)
 setupTree = return . generateTreeG
 
@@ -71,6 +74,13 @@ main = defaultMain
       , benchTree 15
       , benchTree 20
       ]
+  , bgroup "Generate (Fib, Map)"
+      [ benchCataMerkleMapFib 1
+      , benchCataMerkleMapFib 5
+      , benchCataMerkleMapFib 10
+      , benchCataMerkleMapFib 15
+      , benchCataMerkleMapFib 20
+      ]
   , bgroup "Merkelize Tree"
       [ benchMerkleTree 1
       , benchMerkleTree 5
@@ -91,10 +101,10 @@ main = defaultMain
       , benchMerkleTreeWithSingleChange 10
       , benchMerkleTreeWithSingleChange 15
       , benchMerkleTreeWithSingleChange 20
-      , benchMerkleTreeWithSingleChange 21
-      , benchMerkleTreeWithSingleChange 22
-      , benchMerkleTreeWithSingleChange 23
-      , benchMerkleTreeWithSingleChange 24
+      -- , benchMerkleTreeWithSingleChange 21
+      -- , benchMerkleTreeWithSingleChange 22
+      -- , benchMerkleTreeWithSingleChange 23
+      -- , benchMerkleTreeWithSingleChange 24
       ]
   , bgroup "Generate Result"
       [ benchResult 1
@@ -124,5 +134,12 @@ main = defaultMain
       , benchChangeCataMerkleWithMap 15
       , benchChangeCataMerkleWithMap 20
       ]
+  -- , bgroup "Generate (Fib, Map)"
+  --     [ benchCataMerkleMapFib 1
+  --     , benchCataMerkleMapFib 2
+  --     , benchCataMerkleMapFib 3
+  --     , benchCataMerkleMapFib 4
+      -- , benchCataMerkleMapFib 5
+      -- ]
   ]
 

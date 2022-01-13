@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 14f10b75c79f4afe5096a5e4e3f92ee6e57fc8fcd61ae1912289598549a72c09
+-- hash: b2f2dec931c12bf12c00b24072240488b222f184010e94a9c5235a6e69fc5dc1
 
 name:           incremental-hdiff
 version:        0.1.0.0
@@ -29,6 +29,7 @@ library
   exposed-modules:
       CommandLine
       Diff
+      Generics.Data.Digest.CRC32
       GenericTree
       Languages.Interface
       Languages.Main
@@ -45,9 +46,12 @@ library
       src
   build-depends:
       base >=4.7 && <5
+    , bytestring
     , containers
     , deepseq
+    , digest
     , hdiff
+    , memory
     , mtl
     , optparse-applicative
     , parsec
@@ -65,11 +69,14 @@ executable benchmark-tree
       benchmarks
   build-depends:
       base >=4.7 && <5
+    , bytestring
     , containers
     , criterion
     , deepseq
+    , digest
     , hdiff
     , incremental-hdiff
+    , memory
     , mtl
     , optparse-applicative
     , parsec
@@ -88,10 +95,13 @@ executable incremental-hdiff-exe
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       base >=4.7 && <5
+    , bytestring
     , containers
     , deepseq
+    , digest
     , hdiff
     , incremental-hdiff
+    , memory
     , mtl
     , optparse-applicative
     , parsec
@@ -114,11 +124,14 @@ test-suite incremental-hdiff-test
   build-depends:
       QuickCheck
     , base >=4.7 && <5
+    , bytestring
     , containers
     , deepseq
+    , digest
     , hdiff
     , hspec
     , incremental-hdiff
+    , memory
     , mtl
     , optparse-applicative
     , parsec

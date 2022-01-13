@@ -30,6 +30,9 @@ dependencies:
   - prettyprinter
   - prettyprinter-ansi-terminal
   - text
+  - digest
+  - bytestring
+  - memory
 
 library:
   source-dirs: src
