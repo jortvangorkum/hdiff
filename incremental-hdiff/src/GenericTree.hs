@@ -253,6 +253,16 @@ cataMerkleMapFib = cataMerkleTree leaf node
     node (xl, ml) x (xr, mr) h = let n = fib x + xl + xr
                                  in (n, M.insert (debugHash h) n (ml <> mr))
 
+cataMerkleMapFibWithMap :: M.Map String Int -> MerkleTree Int -> (Int, M.Map String Int)
+cataMerkleMapFibWithMap m = cataMerkleTree leaf node
+  where
+    leaf x h = case M.lookup (debugHash h) m of
+      Nothing -> let n = fib x in (n, M.insert (debugHash h) n M.empty)
+      Just n  -> (n, m)
+    node (xl, ml) x (xr, mr) h = case M.lookup (debugHash h) m of
+      Nothing -> let n = fib x + xl + xr in (n, M.insert (debugHash h) n (ml <> mr))
+      Just n -> (n, m)
+
 cataMerkleMap :: MerkleTree Int -> (Int, M.Map String Int)
 cataMerkleMap = cataMerkleTree leaf node
   where

@@ -1,14 +1,32 @@
+{-# LANGUAGE LambdaCase #-}
 module Main where
 
 import           Criterion.Main
 import qualified Data.Map       as M
 import           GenericTree
 
+-- Generates Tree of size 2n + 1
 generateTreeG :: Int -> TreeG Int
 generateTreeG = from . generateTreeF
   where
-    generateTreeF 0 = In $ LeafF 0
-    generateTreeF n = In $ NodeF (generateTreeF (n - 1)) n (generateTreeF (n - 1))
+    generateTreeF n = generateBinTree 0 (n - 1)
+    generateBinTree :: Int -> Int -> TreeF Int
+    generateBinTree l u =
+      if u < l
+      then In $ LeafF l
+      else let i = (l + u) `div` 2
+           in In $ NodeF (generateBinTree l (i - 1)) i (generateBinTree (i + 1) u)
+
+sizeTree :: TreeG Int -> Int
+sizeTree = cata (\case
+  Inl _                           -> 1
+  Inr (Pair (Pair (I l, _), I r)) -> 1 + l + r)
+
+-- generateTreeG :: Int -> TreeG Int
+-- generateTreeG = from . generateTreeF
+--   where
+--     generateTreeF 0 = In $ LeafF 0
+--     generateTreeF n = In $ NodeF (generateTreeF (n - 1)) n (generateTreeF (n - 1))
 
 benchTree :: Int -> Benchmark
 benchTree n = bench (show n) $ nf generateTreeG n
@@ -37,6 +55,12 @@ benchChangeCataMerkleWithMap n = env (setupMapMerkleTreeChange n) (bench (show n
 benchCataMerkleMapFib :: Int -> Benchmark
 benchCataMerkleMapFib n = env (setupMerkleTree n) (bench (show n) . nf cataMerkleMapFib)
 
+benchCataMerkleMapFibWithMap :: Int -> Benchmark
+benchCataMerkleMapFibWithMap n = env (setupFibMapMerkleTree n) (bench (show n) . nf (\(mt, m) -> cataMerkleMapFibWithMap m mt))
+
+benchCataMerkleMapFibWithMapSingleChange :: Int -> Benchmark
+benchCataMerkleMapFibWithMapSingleChange n = env (setupFibMapMerkleTreeSingleChange n) (bench (show n) . nf (\(mt, m) -> cataMerkleMapFibWithMap m mt))
+
 setupTree :: Int -> IO (TreeG Int)
 setupTree = return . generateTreeG
 
@@ -55,6 +79,18 @@ setupMapMerkleTree n = do
                      mt <- setupMerkleTree n
                      return (mt, m)
 
+setupFibMapMerkleTree :: Int -> IO (MerkleTree Int, M.Map String Int)
+setupFibMapMerkleTree n = do
+                          mt <- setupMerkleTree n
+                          let m = snd $ cataMerkleMapFib mt
+                          return (mt, m)
+
+setupFibMapMerkleTreeSingleChange :: Int -> IO (MerkleTree Int, M.Map String Int)
+setupFibMapMerkleTreeSingleChange n = do
+                                      let mt = merkle $ changeSingleLeaf $ generateTreeG n
+                                      let m = snd $ cataMerkleMapFib mt
+                                      return (mt, m)
+
 changeSingleLeaf :: TreeG Int -> TreeG Int
 changeSingleLeaf (In (Inl (K _))) = In (Inl (K 10))
 changeSingleLeaf (In (Inr (Pair (Pair (I l, x), r)))) = In $ Inr $ Pair (Pair (I (changeSingleLeaf l), x), r)
@@ -67,79 +103,27 @@ setupMapMerkleTreeChange n = do
 
 main :: IO ()
 main = defaultMain
-  [ bgroup "Generate Tree"
-      [ benchTree 1
-      , benchTree 5
-      , benchTree 10
-      , benchTree 15
-      , benchTree 20
-      ]
-  , bgroup "Generate (Fib, Map)"
-      [ benchCataMerkleMapFib 1
-      , benchCataMerkleMapFib 5
-      , benchCataMerkleMapFib 10
-      , benchCataMerkleMapFib 15
-      , benchCataMerkleMapFib 20
-      ]
-  , bgroup "Merkelize Tree"
-      [ benchMerkleTree 1
-      , benchMerkleTree 5
-      , benchMerkleTree 10
-      , benchMerkleTree 15
-      , benchMerkleTree 20
-      ]
-  , bgroup "Merkelize Tree With Merkle Tree"
-      [ benchMerkleTreeWithMerkleTree 1
-      , benchMerkleTreeWithMerkleTree 5
-      , benchMerkleTreeWithMerkleTree 10
-      , benchMerkleTreeWithMerkleTree 15
-      , benchMerkleTreeWithMerkleTree 20
-      ]
-  , bgroup "Merkelize Tree With Single Change Merkle Tree"
-      [ benchMerkleTreeWithSingleChange 1
-      , benchMerkleTreeWithSingleChange 5
-      , benchMerkleTreeWithSingleChange 10
-      , benchMerkleTreeWithSingleChange 15
-      , benchMerkleTreeWithSingleChange 20
-      -- , benchMerkleTreeWithSingleChange 21
-      -- , benchMerkleTreeWithSingleChange 22
-      -- , benchMerkleTreeWithSingleChange 23
-      -- , benchMerkleTreeWithSingleChange 24
-      ]
-  , bgroup "Generate Result"
-      [ benchResult 1
-      , benchResult 5
-      , benchResult 10
-      , benchResult 15
-      , benchResult 20
-      ]
-  , bgroup "Generate (Result, Map)"
-      [ benchCataMerkleMap 1
-      , benchCataMerkleMap 5
-      , benchCataMerkleMap 10
-      , benchCataMerkleMap 15
-      , benchCataMerkleMap 20
-      ]
-  , bgroup "Generate (Result, Map) with Map"
-      [ benchCataMerkleWithMap 1
-      , benchCataMerkleWithMap 5
-      , benchCataMerkleWithMap 10
-      , benchCataMerkleWithMap 15
-      , benchCataMerkleWithMap 20
-      ]
-  , bgroup "Generate (Result, Map) with Map Single Change"
-      [ benchChangeCataMerkleWithMap 1
-      , benchChangeCataMerkleWithMap 5
-      , benchChangeCataMerkleWithMap 10
-      , benchChangeCataMerkleWithMap 15
-      , benchChangeCataMerkleWithMap 20
-      ]
-  -- , bgroup "Generate (Fib, Map)"
-  --     [ benchCataMerkleMapFib 1
-  --     , benchCataMerkleMapFib 2
-  --     , benchCataMerkleMapFib 3
-  --     , benchCataMerkleMapFib 4
-      -- , benchCataMerkleMapFib 5
-      -- ]
+  [ bgroup "Generate Tree" $
+    map benchTree [1, 10, 100, 1000, 10000]
+  , bgroup "Merkelize Tree" $
+    map benchMerkleTree [1, 10, 100, 1000, 10000]
+  , bgroup "Merkelize Tree With Merkle Tree" $
+    map benchMerkleTreeWithMerkleTree [1, 10, 100, 1000, 10000]
+  , bgroup "Merkelize Tree With Single Change Merkle Tree" $
+    map benchMerkleTreeWithSingleChange [1, 10, 100, 1000, 10000]
+  , bgroup "Generate Result" $
+    map benchResult [1, 10, 100, 1000, 10000]
+  , bgroup "Generate (Result, Map)" $
+    map benchCataMerkleMap [1, 10, 100, 1000, 10000]
+  , bgroup "Generate (Result, Map) with Map" $
+    map benchCataMerkleWithMap [1, 10, 100, 1000, 10000]
+  , bgroup "Generate (Result, Map) with Map Single Change" $
+    map benchChangeCataMerkleWithMap [1, 10, 100, 1000, 10000]
+  , bgroup "Generate (Fib, Map)" $
+    map benchCataMerkleMapFib [1, 10, 20, 30, 40]
+  , bgroup "Generate (Fib, Map) with Map" $
+    map benchCataMerkleMapFibWithMap [1, 10, 20, 30, 40]
+  , bgroup "Generate (Fib, Map) with Map Single Change" $
+    map benchCataMerkleMapFibWithMapSingleChange [1, 10, 20, 30, 40]
   ]
 
