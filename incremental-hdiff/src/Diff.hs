@@ -4,6 +4,7 @@
 {-# LANGUAGE PolyKinds           #-}
 {-# LANGUAGE RankNTypes          #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeApplications    #-}
 
 module Diff where
 
@@ -21,6 +22,9 @@ import           Data.HDiff.Diff.Modes
 import           Data.HDiff.Diff.Preprocess
 import           Data.HDiff.Diff.Types
 import           Data.HDiff.MetaVar
+import qualified Data.List                  as L
+import qualified Data.Map.Strict            as M
+import           Data.Word                  (Word64)
 import qualified Data.WordTrie              as T
 
 -- * Diffing
@@ -52,6 +56,79 @@ buildArityTrie opts df = go df T.empty
     goR (S_M1 _ x) t = goR x t
     goR (x :**: y) t = goR y (goR x t)
     goR (S_K1 x) t   = go x t
+
+-- data MyTrie a = Fork
+--   { trieVal :: Maybe a
+--   , trieMap :: M.Map Word64 (MyTrie a)
+--   } deriving (Eq)
+
+-- empty :: MyTrie a
+-- empty = Fork Nothing M.empty
+
+-- insertWith :: a -> (a -> a) -> [Word64] -> MyTrie a -> MyTrie a
+-- insertWith x f = L.foldl' navigate insHere
+--   where
+--     insHere (Fork (Just val) m) = Fork (Just $ f val) m
+--     insHere (Fork Nothing    m) = Fork (Just x) m
+
+--     navigate c w64 (Fork v m)
+--       = Fork v (M.alter (maybe (Just (c empty)) (Just . c)) w64 m)
+
+data EFix kappa fam where
+  EFix :: SFix kappa fam ix -> EFix kappa fam
+
+erase :: PrepFix a kappa fam ix -> SFix kappa fam ix
+erase = holesMapAnn id (const U1)
+
+buildTrie :: PrepFix a kappa fam ix -> T.Trie (EFix kappa fam)
+buildTrie df = go df T.empty
+  where
+    ins :: SFix kappa fam ix -> Digest -> T.Trie (EFix kappa fam) -> T.Trie (EFix kappa fam)
+    ins sf = T.insert (EFix sf) . toW64s
+
+    -- minHeight = doMinHeight opts
+
+    go :: PrepFix a kappa fam ix -> T.Trie (EFix kappa fam) -> T.Trie (EFix kappa fam)
+    go (PrimAnn _            _) t   = t
+    go x@(SFixAnn (Const prep) p) t = ins (erase x) (treeDigest prep) (goR p t)
+
+    goR :: SRep (PrepFix a kappa fam) ix -> T.Trie (EFix kappa fam) -> T.Trie (EFix kappa fam)
+    goR S_U1 t       = t
+    goR (S_L1 x) t   = goR x t
+    goR (S_R1 x) t   = goR x t
+    goR (S_ST x) t   = goR x t
+    goR (S_M1 _ x) t = goR x t
+    goR (x :**: y) t = goR y (goR x t)
+    goR (S_K1 x) t   = go x t
+
+
+buildTrieBetter :: PrepFix a kappa fam ix -> T.Trie (EFix kappa fam)
+buildTrieBetter df = fst $ go df T.empty
+  where
+    ins :: SFix kappa fam ix -> Digest -> T.Trie (EFix kappa fam) -> T.Trie (EFix kappa fam)
+    ins sf = T.insert (EFix sf) . toW64s
+
+    -- minHeight = doMinHeight opts
+
+    go :: forall a kappa fam ix . PrepFix a kappa fam ix -> T.Trie (EFix kappa fam) -> (T.Trie (EFix kappa fam), SFix kappa fam ix)
+    go (PrimAnn _            i) t = (t, Prim i)
+    go x@(SFixAnn (Const prep) p) t = let (trie, srep) = goR p t in (ins (SFix @_ @_ @ix srep) (treeDigest prep) trie, SFix srep)
+
+    goR :: SRep (PrepFix a kappa fam) ix -> T.Trie (EFix kappa fam) -> (T.Trie (EFix kappa fam), SRep (SFix kappa fam) ix)
+    goR S_U1 t       = (t, S_U1)
+    goR (S_L1 x) t   = let (trie, srep) = goR x t in (trie, S_L1 srep)
+    goR (S_R1 x) t   = let (trie, srep) = goR x t in (trie, S_R1 srep)
+    goR (S_ST x) t   = let (trie, srep) = goR x t in (trie, S_ST srep)
+    goR (S_M1 m x) t = let (trie, srep) = goR x t in (trie, S_M1 m srep)
+    goR (x :**: y) t = let (trie, srepx) = goR x t
+                           (trie2, srepy) = goR y trie
+                       in (trie2, srepx :**: srepy)
+    goR (S_K1 x) t   = let (trie, sfix) = go x t in (trie, S_K1 sfix)
+
+
+
+-- Not a easy function
+-- Lookup, using sameTy https://hackage.haskell.org/package/simplistic-generics-2.0.0/docs/Generics-Simplistic-Util.html#v:sameTy
 
 -- |Given two merkelized trees, returns the trie that indexes
 --  the subtrees that belong in both, ie,
