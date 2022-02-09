@@ -1,14 +1,18 @@
 {-# LANGUAGE DeriveFunctor        #-}
+{-# LANGUAGE FlexibleInstances    #-}
 {-# LANGUAGE LambdaCase           #-}
 {-# LANGUAGE RankNTypes           #-}
 {-# LANGUAGE TypeOperators        #-}
 {-# LANGUAGE UndecidableInstances #-}
 module GenericTree where
 
+import           Control.DeepSeq
 import qualified Data.Map                   as M
 import           Data.Maybe                 (fromMaybe)
 import           Debug.Trace                (trace)
-import           Generics.Simplistic.Digest
+import           GHC.Generics               (Generic, Generic1)
+-- import           Generics.Simplistic.Digest
+import           Generics.Data.Digest.CRC32
 
 newtype Fix f = In { unFix :: f (Fix f) }
 
@@ -21,10 +25,10 @@ instance Show (f (Fix f)) => Show (Fix f) where
 cata :: Functor f => (f a -> a) -> Fix f -> a
 cata alg t = alg (fmap (cata alg) (unFix t))
 
-newtype I r         = I r                   deriving (Show)
-newtype K a r       = K a                   deriving (Show)
-data (:+:) f g r    = Inl (f r) | Inr (g r) deriving (Show)
-newtype (:*:) f g r = Pair (f r, g r)       deriving (Show)
+newtype I r         = I r                   deriving (Show, Eq)
+newtype K a r       = K a                   deriving (Show, Eq)
+data (:+:) f g r    = Inl (f r) | Inr (g r) deriving (Show, Eq)
+newtype (:*:) f g r = Pair (f r, g r)       deriving (Show, Eq)
 
 infixr 7 :*:
 infixr 6 :+:
@@ -42,6 +46,42 @@ instance Functor I where
 
 instance Functor (K a) where
   fmap _ (K x) = K x
+
+-- Digest NFData
+
+instance NFData Digest where
+  rnf = rwhnf
+
+-- Generic NFData
+-- https://hackage.haskell.org/package/deepseq-1.4.6.1/docs/src/Control.DeepSeq.html#line-535
+
+instance NFData (f (Fix f)) => NFData (Fix f) where
+  rnf (In x) = rnf x
+
+instance NFData r => NFData (I r) where
+  rnf = rnf1
+
+instance NFData1 I where
+  liftRnf f (I x) = f x
+
+instance (NFData a, NFData r) => NFData (K a r) where
+  rnf = rnf1
+
+instance NFData a => NFData1 (K a) where
+  liftRnf _ (K x) = rwhnf x
+
+instance (NFData1 f, NFData1 g) => NFData1 (f :+: g) where
+  liftRnf f (Inl x) = liftRnf f x
+  liftRnf f (Inr x) = liftRnf f x
+
+instance (NFData1 f, NFData1 g, NFData r) => NFData ((:+:) f g r) where
+  rnf = rnf1
+
+instance (NFData1 f, NFData1 g) => NFData1 (f :*: g) where
+  liftRnf f (Pair (x, y)) = liftRnf f x `seq` liftRnf f y
+
+instance (NFData1 f, NFData1 g, NFData r) => NFData ((:*:) f g r) where
+  rnf = rnf1
 
 {-
   TREE
@@ -90,14 +130,17 @@ foldMerkle x = cata f mt
 -}
 
 debugHash :: Digest -> String
-debugHash h = take 5 (show (getDigest h))
+debugHash h = take 5 (show (getCRC32 h))
+
+type MerkleFix f = Fix (f :*: K Digest)
+type MerkleTree a = MerkleFix (TreeGr a)
 
 type TreeG  a = Fix (TreeGr a)
 
 type TreeGr a = K a
              :+: ((I :*: K a) :*: I)
 
-merkle :: MerkelizeG f => Fix f -> Fix (f :*: K Digest)
+merkle :: MerkelizeG f => Fix f -> MerkleFix f
 merkle = In . merkleG . unFix
 
 class (Functor f) => MerkelizeG f where
@@ -188,23 +231,78 @@ cataMerkleMapValue x = cata f mt
       Inl (K x)                         -> M.insert (debugHash h) x M.empty
       Inr (Pair (Pair (I l, K x), I r)) -> M.insert (debugHash h) x (l <> r)
 
-cataTreeG :: (Show a) => (a -> Digest -> b) -> (b -> a -> b -> Digest -> b) -> TreeG a -> b
-cataTreeG leaf node x = cata f mt
+cataMerkleTree :: (Show a) => (a -> Digest -> b) -> (b -> a -> b -> Digest -> b) -> MerkleTree a -> b
+cataMerkleTree leaf node = cata f
   where
-    mt = merkle x
     f (Pair (px, K h)) = case px of
       Inl (K x)                         -> leaf x h
       Inr (Pair (Pair (I l, K x), I r)) -> node l x r h
 
-cataMerkleMap :: TreeG Int -> (Int, M.Map String Int)
-cataMerkleMap = cataTreeG leaf node
+cataTreeG :: (Show a) => (a -> Digest -> b) -> (b -> a -> b -> Digest -> b) -> TreeG a -> b
+cataTreeG leaf node x = let mt = merkle x in cataMerkleTree leaf node mt
+
+fib :: Int -> Int
+fib 0 = 0
+fib 1 = 1
+fib n = fib (n - 1) + fib (n - 2)
+
+cataMerkleMapFib :: MerkleTree Int -> (Int, M.Map String Int)
+cataMerkleMapFib = cataMerkleTree leaf node
+  where
+    leaf x h = let n = fib x
+               in (n, M.insert (debugHash h) n M.empty)
+    node (xl, ml) x (xr, mr) h = let n = fib x + xl + xr
+                                 in (n, M.insert (debugHash h) n (ml <> mr))
+
+cataMerkleMapFibWithMap :: M.Map String Int -> MerkleTree Int -> (Int, M.Map String Int)
+cataMerkleMapFibWithMap m = cataMerkleTree leaf node
+  where
+    leaf x h = case M.lookup (debugHash h) m of
+      Nothing -> let n = fib x in (n, M.insert (debugHash h) n M.empty)
+      Just n  -> (n, m)
+    node (xl, ml) x (xr, mr) h = case M.lookup (debugHash h) m of
+      Nothing -> let n = fib x + xl + xr in (n, M.insert (debugHash h) n (ml <> mr))
+      Just n -> (n, m)
+
+cataMerkleMap :: MerkleTree Int -> (Int, M.Map String Int)
+cataMerkleMap = cataMerkleTree leaf node
   where
     leaf x h = (x, M.insert (debugHash h) x M.empty)
     node (xl, ml) x (xr, mr) h = let x' = x + xl + xr
                                  in (x', M.insert (debugHash h) x' (ml <> mr))
 
-cataMerkleWithMap :: M.Map String Int -> TreeG Int -> (Int, M.Map String Int)
-cataMerkleWithMap m = cataTreeG leaf node
+cataMap :: TreeG Int -> (Int, M.Map String Int)
+cataMap = cataTreeG leaf node
+  where
+    leaf x h = (x, M.insert (debugHash h) x M.empty)
+    node (xl, ml) x (xr, mr) h = let x' = x + xl + xr
+                                 in (x', M.insert (debugHash h) x' (ml <> mr))
+
+cataWithMap :: M.Map String Int -> TreeG Int -> (Int, M.Map String Int)
+cataWithMap m = cataTreeG leaf node
+  where
+    leaf x h = (x, M.insert (debugHash h) x M.empty)
+    node (xl, ml) x (xr, mr) h = case M.lookup (debugHash h) m of
+      Nothing -> let x' = x + xl + xr
+                 in (x', M.insert (debugHash h) x' (ml <> mr))
+      Just n  -> (n, m)
+
+cataMerkleWithMapStop :: M.Map String Int -> MerkleTree Int -> (Int, M.Map String Int)
+cataMerkleWithMapStop m (In (Pair (x, K h))) = case M.lookup (debugHash h) m of
+  Nothing -> y
+  Just n  -> (n, m)
+  where
+    y = case x of
+      Inl (K x) -> (x, M.insert (debugHash h) x M.empty)
+      Inr (Pair (Pair (I l, K x), I r)) -> (x', m')
+        where
+          (xl, ml) = cataMerkleWithMapStop m l
+          (xr, mr) = cataMerkleWithMapStop ml r
+          x' = x + xl + xr
+          m' = M.insert (debugHash h) x' mr
+
+cataMerkleWithMap :: M.Map String Int -> MerkleTree Int -> (Int, M.Map String Int)
+cataMerkleWithMap m = cataMerkleTree leaf node
   where
     leaf x h = (x, M.insert (debugHash h) x M.empty)
     node (xl, ml) x (xr, mr) h = case M.lookup (debugHash h) m of
@@ -215,6 +313,35 @@ cataMerkleWithMap m = cataTreeG leaf node
 showTreeG :: String
 showTreeG = show $ merkleG $ unFix exampleTreeG
 
+getRootDigest :: MerkleTree a -> Digest
+getRootDigest (In (Pair (_, K h))) = h
+
+genMTWithMT :: (Show a, Eq a) => MerkleTree a -> TreeG a -> (Bool, MerkleTree a)
+genMTWithMT lm@(In (Pair (Inl (K y), K h)))
+            l@(In (Inl (K x)))
+            = if x == y
+              then (True, lm)
+              else (False, merkle l)
+genMTWithMT nm@(In (Pair (Inr (Pair (Pair (I lm, K y), I rm)), K h)))
+            n@(In (Inr (Pair (Pair (I l, K x), I r))))
+            = if x == y && sl && sr
+              then (True, nm)
+              else (False, In (Pair (Inr (Pair (Pair (I l', K x), I r')), K h')))
+            where
+              (sl, l') = genMTWithMT lm l
+              (sr, r') = genMTWithMT rm r
+              hl = getRootDigest l'
+              hr = getRootDigest r'
+              h' = digestConcat [ digest "Inr", digestConcat [
+                                  digest "Pair", digestConcat [
+                                     digest "Pair", hl, digestConcat [
+                                       digest "K", digest x
+                                     ],
+                                     hr
+                                   ]
+                                 ]
+                               ]
+genMTWithMT _ x = (False, merkle x)
 {-
   The Digest are only saved on the Inl and Inr, because of the Fix.
   The Fix point is the point where the Digest gets saved.

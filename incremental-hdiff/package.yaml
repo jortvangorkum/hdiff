@@ -30,6 +30,9 @@ dependencies:
   - prettyprinter
   - prettyprinter-ansi-terminal
   - text
+  - digest
+  - bytestring
+  - memory
 
 library:
   source-dirs: src
@@ -44,6 +47,13 @@ executables:
       - -with-rtsopts=-N
     dependencies:
       - incremental-hdiff
+
+  benchmark-tree:
+    main: Main.hs
+    source-dirs: benchmarks
+    dependencies:
+      - incremental-hdiff
+      - criterion
 
 tests:
   incremental-hdiff-test:
