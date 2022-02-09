@@ -1,4 +1,5 @@
 {-# LANGUAGE DeriveFunctor        #-}
+{-# LANGUAGE FlexibleInstances    #-}
 {-# LANGUAGE LambdaCase           #-}
 {-# LANGUAGE RankNTypes           #-}
 {-# LANGUAGE TypeOperators        #-}
@@ -285,6 +286,20 @@ cataWithMap m = cataTreeG leaf node
       Nothing -> let x' = x + xl + xr
                  in (x', M.insert (debugHash h) x' (ml <> mr))
       Just n  -> (n, m)
+
+cataMerkleWithMapStop :: M.Map String Int -> MerkleTree Int -> (Int, M.Map String Int)
+cataMerkleWithMapStop m (In (Pair (x, K h))) = case M.lookup (debugHash h) m of
+  Nothing -> y
+  Just n  -> (n, m)
+  where
+    y = case x of
+      Inl (K x) -> (x, M.insert (debugHash h) x M.empty)
+      Inr (Pair (Pair (I l, K x), I r)) -> (x', m')
+        where
+          (xl, ml) = cataMerkleWithMapStop m l
+          (xr, mr) = cataMerkleWithMapStop ml r
+          x' = x + xl + xr
+          m' = M.insert (debugHash h) x' mr
 
 cataMerkleWithMap :: M.Map String Int -> MerkleTree Int -> (Int, M.Map String Int)
 cataMerkleWithMap m = cataMerkleTree leaf node

@@ -108,24 +108,23 @@ buildTrieBetter df = fst $ go df T.empty
     ins :: SFix kappa fam ix -> Digest -> T.Trie (EFix kappa fam) -> T.Trie (EFix kappa fam)
     ins sf = T.insert (EFix sf) . toW64s
 
-    -- minHeight = doMinHeight opts
-
     go :: forall a kappa fam ix . PrepFix a kappa fam ix -> T.Trie (EFix kappa fam) -> (T.Trie (EFix kappa fam), SFix kappa fam ix)
     go (PrimAnn _            i) t = (t, Prim i)
     go x@(SFixAnn (Const prep) p) t = let (trie, srep) = goR p t in (ins (SFix @_ @_ @ix srep) (treeDigest prep) trie, SFix srep)
 
     goR :: SRep (PrepFix a kappa fam) ix -> T.Trie (EFix kappa fam) -> (T.Trie (EFix kappa fam), SRep (SFix kappa fam) ix)
     goR S_U1 t       = (t, S_U1)
-    goR (S_L1 x) t   = let (trie, srep) = goR x t in (trie, S_L1 srep)
-    goR (S_R1 x) t   = let (trie, srep) = goR x t in (trie, S_R1 srep)
-    goR (S_ST x) t   = let (trie, srep) = goR x t in (trie, S_ST srep)
-    goR (S_M1 m x) t = let (trie, srep) = goR x t in (trie, S_M1 m srep)
-    goR (x :**: y) t = let (trie, srepx) = goR x t
-                           (trie2, srepy) = goR y trie
-                       in (trie2, srepx :**: srepy)
-    goR (S_K1 x) t   = let (trie, sfix) = go x t in (trie, S_K1 sfix)
+    goR (S_L1 x) t   = let (tr, srep) = goR x t in (tr, S_L1 srep)
+    goR (S_R1 x) t   = let (tr, srep) = goR x t in (tr, S_R1 srep)
+    goR (S_ST x) t   = let (tr, srep) = goR x t in (tr, S_ST srep)
+    goR (S_M1 m x) t = let (tr, srep) = goR x t in (tr, S_M1 m srep)
+    goR (x :**: y) t = let (tr, srepx) = goR x t
+                           (tr2, srepy) = goR y tr
+                        in (tr2, srepx :**: srepy)
+    goR (S_K1 x) t   = let (tr, sfix) = go x t in (tr, S_K1 sfix)
 
-
+lookupTrie :: T.Trie (EFix kappa fam) -> Digest -> PrepFix a kappa fam ix
+lookupTrie t h = undefined
 
 -- Not a easy function
 -- Lookup, using sameTy https://hackage.haskell.org/package/simplistic-generics-2.0.0/docs/Generics-Simplistic-Util.html#v:sameTy

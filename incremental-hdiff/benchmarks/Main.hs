@@ -47,10 +47,10 @@ benchCataMerkleMap :: Int -> Benchmark
 benchCataMerkleMap n = env (setupMerkleTree n) (bench (show n) . nf cataMerkleMap)
 
 benchCataMerkleWithMap :: Int -> Benchmark
-benchCataMerkleWithMap n = env (setupMapMerkleTree n) (bench (show n) . nf (\(mt, m) -> cataMerkleWithMap m mt))
+benchCataMerkleWithMap n = env (setupMapMerkleTree n) (bench (show n) . nf (\(mt, m) -> cataMerkleWithMapStop m mt))
 
 benchChangeCataMerkleWithMap :: Int -> Benchmark
-benchChangeCataMerkleWithMap n = env (setupMapMerkleTreeChange n) (bench (show n) . nf (\(mt, m) -> cataMerkleWithMap m mt))
+benchChangeCataMerkleWithMap n = env (setupMapMerkleTreeChange n) (bench (show n) . nf (\(mt, m) -> cataMerkleWithMapStop m mt))
 
 benchCataMerkleMapFib :: Int -> Benchmark
 benchCataMerkleMapFib n = env (setupMerkleTree n) (bench (show n) . nf cataMerkleMapFib)
@@ -112,11 +112,11 @@ main = defaultMain
   , bgroup "Merkelize Tree With Single Change Merkle Tree" $
     map benchMerkleTreeWithSingleChange [1, 10, 100, 1000, 10000]
   , bgroup "Generate Result" $
-    map benchResult [1, 10, 100, 1000, 10000]
+    map benchResult [1, 10, 100, 1000, 10000, 100000]
   , bgroup "Generate (Result, Map)" $
-    map benchCataMerkleMap [1, 10, 100, 1000, 10000]
+    map benchCataMerkleMap [1, 10, 100, 1000, 10000, 100000]
   , bgroup "Generate (Result, Map) with Map" $
-    map benchCataMerkleWithMap [1, 10, 100, 1000, 10000]
+    map benchCataMerkleWithMap [1, 10, 100, 1000, 10000, 100000]
   , bgroup "Generate (Result, Map) with Map Single Change" $
     map benchChangeCataMerkleWithMap [1, 10, 100, 1000, 10000]
   , bgroup "Generate (Fib, Map)" $
