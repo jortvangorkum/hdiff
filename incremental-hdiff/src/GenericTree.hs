@@ -226,25 +226,26 @@ cataMerkle alg m (In (Pair (x, K h))) = case M.lookup (debugHash h) m of
 cataMerkle2 :: (Functor f, Traversable f, Show a) => (f a -> a) -> Fix (f :*: K Digest) -> State (M.Map String a) a
 cataMerkle2 alg (In (Pair (x, K h)))
   = do m <- get
-       y <- mapM (cataMerkle2 alg) x
 
-       let z = case M.lookup (debugHash h) m of
-             Just a  -> trace ("LOOKUP: " ++ show a) a
-             Nothing -> trace ("CALCULATE: " ++ show (alg y)) alg y
+       case M.lookup (debugHash h) m of
+        Just a  -> trace ("LOOKUP: " ++ show a) return a
+        Nothing -> trace ("CALCULATE: " ++ show m)
+                 $ do y <- mapM (cataMerkle2 alg) x
+                      let r = alg y
+                      trace ("VALUE: " ++ show r) modify (M.insert (debugHash h) r) >> return r
 
-       trace ("Current Map: " ++ show m ++ "\n Current Value: " ++ show z) $ put (M.insert (debugHash h) z m)
-
-       return z
+cataMerkle3 :: (MerkelizeG f, Functor f, Traversable f, Show a) => (f a -> a) -> M.Map String a -> Fix f -> (a, M.Map String a)
+cataMerkle3 alg m t = runState (cataMerkle2 alg (merkle t)) m
 
 cataSum2 :: TreeG Int -> (Int, M.Map String Int)
-cataSum2 t = runState (cataMerkle2 cataSum (merkle t)) M.empty
+cataSum2 = cataMerkle3 cataSum M.empty
   where
     cataSum = \case
       Inl (K x)                         -> x
       Inr (Pair (Pair (I l, K x), I r)) -> l + x + r
 
 cataSum2WithMap :: M.Map String Int -> TreeG Int -> (Int, M.Map String Int)
-cataSum2WithMap m t = runState (cataMerkle2 cataSum (merkle t)) m
+cataSum2WithMap = cataMerkle3 cataSum
   where
     cataSum = \case
       Inl (K x)                         -> x
