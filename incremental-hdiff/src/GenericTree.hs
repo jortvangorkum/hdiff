@@ -1,6 +1,5 @@
 {-# LANGUAGE DeriveFunctor        #-}
 {-# LANGUAGE FlexibleInstances    #-}
-{-# LANGUAGE InstanceSigs         #-}
 {-# LANGUAGE LambdaCase           #-}
 {-# LANGUAGE RankNTypes           #-}
 {-# LANGUAGE TypeOperators        #-}
@@ -10,7 +9,7 @@ module GenericTree where
 import           Control.DeepSeq
 import qualified Data.Map                   as M
 import           Data.Maybe                 (fromMaybe)
-import           Debug.Trace                (trace)
+import           Debug.Trace                (trace, traceId)
 import           GHC.Generics               (Generic, Generic1)
 -- import           Generics.Simplistic.Digest
 import           Control.Applicative        (liftA2)
@@ -72,7 +71,7 @@ instance (Traversable f, Traversable g) => Traversable (f :+: g) where
   traverse f (Inr x) = Inr <$> traverse f x
 
 instance (Traversable f, Traversable g) => Traversable (f :*: g) where
-  traverse f (Pair (x, y)) = liftA2 Pair (traverse f x) (traverse f y)
+  traverse f (Pair (x, y)) = curry Pair <$> traverse f x <*> traverse f y
 
 instance Traversable (K a) where
   traverse f (K x) = pure (K x)
@@ -224,23 +223,29 @@ cataMerkle alg m (In (Pair (x, K h))) = case M.lookup (debugHash h) m of
   Just a  -> a
   Nothing -> alg (fmap (cataMerkle alg m) x)
 
-cataMerkle2 :: forall a f . (Functor f, Traversable f) => (f a -> a) -> Fix (f :*: K Digest) -> State (M.Map String a) a
+cataMerkle2 :: (Functor f, Traversable f, Show a) => (f a -> a) -> Fix (f :*: K Digest) -> State (M.Map String a) a
 cataMerkle2 alg (In (Pair (x, K h)))
   = do m <- get
        y <- mapM (cataMerkle2 alg) x
 
        let z = case M.lookup (debugHash h) m of
-             Just a  -> a
-             Nothing -> alg y
+             Just a  -> trace ("LOOKUP: " ++ show a) a
+             Nothing -> trace ("CALCULATE: " ++ show (alg y)) alg y
 
-       put (M.insert (debugHash h) z m)
+       trace ("Current Map: " ++ show m ++ "\n Current Value: " ++ show z) $ put (M.insert (debugHash h) z m)
 
        return z
 
 cataSum2 :: TreeG Int -> (Int, M.Map String Int)
-cataSum2 t = runState (cataMerkle2 cataSum x) M.empty
+cataSum2 t = runState (cataMerkle2 cataSum (merkle t)) M.empty
   where
-    x = merkle t
+    cataSum = \case
+      Inl (K x)                         -> x
+      Inr (Pair (Pair (I l, K x), I r)) -> l + x + r
+
+cataSum2WithMap :: M.Map String Int -> TreeG Int -> (Int, M.Map String Int)
+cataSum2WithMap m t = runState (cataMerkle2 cataSum (merkle t)) m
+  where
     cataSum = \case
       Inl (K x)                         -> x
       Inr (Pair (Pair (I l, K x), I r)) -> l + x + r

@@ -6,27 +6,27 @@ import qualified Data.Map       as M
 import           GenericTree
 
 -- Generates Tree of size 2n + 1
-generateTreeG :: Int -> TreeG Int
-generateTreeG = from . generateTreeF
-  where
-    generateTreeF n = generateBinTree 0 (n - 1)
-    generateBinTree :: Int -> Int -> TreeF Int
-    generateBinTree l u =
-      if u < l
-      then In $ LeafF l
-      else let i = (l + u) `div` 2
-           in In $ NodeF (generateBinTree l (i - 1)) i (generateBinTree (i + 1) u)
+-- generateTreeG :: Int -> TreeG Int
+-- generateTreeG = from . generateTreeF
+--   where
+--     generateTreeF n = generateBinTree 0 (n - 1)
+--     generateBinTree :: Int -> Int -> TreeF Int
+--     generateBinTree l u =
+--       if u < l
+--       then In $ LeafF l
+--       else let i = (l + u) `div` 2
+--            in In $ NodeF (generateBinTree l (i - 1)) i (generateBinTree (i + 1) u)
 
 sizeTree :: TreeG Int -> Int
 sizeTree = cata (\case
   Inl _                           -> 1
   Inr (Pair (Pair (I l, _), I r)) -> 1 + l + r)
 
--- generateTreeG :: Int -> TreeG Int
--- generateTreeG = from . generateTreeF
---   where
---     generateTreeF 0 = In $ LeafF 0
---     generateTreeF n = In $ NodeF (generateTreeF (n - 1)) n (generateTreeF (n - 1))
+generateTreeG :: Int -> TreeG Int
+generateTreeG = from . generateTreeF
+  where
+    generateTreeF 0 = In $ LeafF 5
+    generateTreeF n = In $ NodeF (generateTreeF (n - 1)) 5 (generateTreeF (n - 1))
 
 benchTree :: Int -> Benchmark
 benchTree n = bench (show n) $ nf generateTreeG n
