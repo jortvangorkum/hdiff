@@ -1,5 +1,6 @@
 {-# LANGUAGE DeriveFunctor        #-}
 {-# LANGUAGE FlexibleInstances    #-}
+{-# LANGUAGE InstanceSigs         #-}
 {-# LANGUAGE LambdaCase           #-}
 {-# LANGUAGE RankNTypes           #-}
 {-# LANGUAGE TypeOperators        #-}
@@ -12,6 +13,7 @@ import           Data.Maybe                 (fromMaybe)
 import           Debug.Trace                (trace)
 import           GHC.Generics               (Generic, Generic1)
 -- import           Generics.Simplistic.Digest
+import           Control.Applicative        (liftA2)
 import           Control.Monad.State
 import           Generics.Data.Digest.CRC32
 
@@ -47,6 +49,36 @@ instance Functor I where
 
 instance Functor (K a) where
   fmap _ (K x) = K x
+
+-- Generic Foldable
+-- https://github.com/blamario/grampa/blob/f4b97674161c6bd5e45c20226b5fb3458f942ff4/rank2classes/src/Rank2.hs#L307
+instance (Foldable f, Foldable g) => Foldable (f :+: g) where
+  foldMap f (Inl x) = foldMap f x
+  foldMap f (Inr x) = foldMap f x
+
+instance (Foldable f, Foldable g) => Foldable (f :*: g) where
+  foldMap f (Pair (x, y)) = foldMap f x <> foldMap f y
+
+instance Foldable (K a) where
+  foldMap _ _ = mempty
+
+instance Foldable I where
+  foldMap f (I r) = f r
+
+-- Generic Traversable
+-- https://www.tweag.io/blog/2021-07-08-linear-traversable/
+instance (Traversable f, Traversable g) => Traversable (f :+: g) where
+  traverse f (Inl x) = Inl <$> traverse f x
+  traverse f (Inr x) = Inr <$> traverse f x
+
+instance (Traversable f, Traversable g) => Traversable (f :*: g) where
+  traverse f (Pair (x, y)) = liftA2 Pair (traverse f x) (traverse f y)
+
+instance Traversable (K a) where
+  traverse f (K x) = pure (K x)
+
+instance Traversable I where
+  traverse f (I r) = I <$> f r
 
 -- Digest NFData
 
@@ -204,6 +236,14 @@ cataMerkle2 alg (In (Pair (x, K h)))
        put (M.insert (debugHash h) z m)
 
        return z
+
+cataSum2 :: TreeG Int -> (Int, M.Map String Int)
+cataSum2 t = runState (cataMerkle2 cataSum x) M.empty
+  where
+    x = merkle t
+    cataSum = \case
+      Inl (K x)                         -> x
+      Inr (Pair (Pair (I l, K x), I r)) -> l + x + r
 
 {-
   Nothing -> let resultaat = ... in modify (insert resultaat h) >> return resultaat
