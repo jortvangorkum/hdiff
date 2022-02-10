@@ -12,6 +12,7 @@ import           Data.Maybe                 (fromMaybe)
 import           Debug.Trace                (trace)
 import           GHC.Generics               (Generic, Generic1)
 -- import           Generics.Simplistic.Digest
+import           Control.Monad.State
 import           Generics.Data.Digest.CRC32
 
 newtype Fix f = In { unFix :: f (Fix f) }
@@ -178,6 +179,43 @@ instance (MerkelizeG f, MerkelizeG g) => MerkelizeG (f :*: g) where
       (Pair (prevX, K phx)) = merkleG x
       (Pair (prevY, K phy)) = merkleG y
       h = digestConcat [digest "Pair", phx, phy]
+
+cata2 :: Functor f => (f a -> a) -> Fix f -> a
+cata2 alg t = alg z
+  where
+    z = fmap f x
+    f = cata2 alg
+    x = unFix t
+
+cataMerkle :: Functor f => (f a -> a) -> M.Map String a -> Fix (f :*: K Digest) -> a
+cataMerkle alg m (In (Pair (x, K h))) = case M.lookup (debugHash h) m of
+  Just a  -> a
+  Nothing -> alg (fmap (cataMerkle alg m) x)
+
+cataMerkle2 :: forall a f . (Functor f, Traversable f) => (f a -> a) -> Fix (f :*: K Digest) -> State (M.Map String a) a
+cataMerkle2 alg (In (Pair (x, K h)))
+  = do m <- get
+       y <- mapM (cataMerkle2 alg) x
+
+       let z = case M.lookup (debugHash h) m of
+             Just a  -> a
+             Nothing -> alg y
+
+       put (M.insert (debugHash h) z m)
+
+       return z
+
+{-
+  Nothing -> let resultaat = ... in modify (insert resultaat h) >> return resultaat
+
+  modify :: (s -> s) -> State s ()
+
+  cataMerkle2 :: ... -> State (M.Map String a) a
+
+  sequence :: f (State Map a) -> State Map (f a)
+
+  cataMerkle2 :: (Functor f, Traversable f) => (f a -> a) -> Fix (f :*: K Digest) -> State (M.Map String a) a
+-}
 
 from :: TreeF a -> TreeG a
 from = cata f
